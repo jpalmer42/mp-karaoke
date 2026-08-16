@@ -1,6 +1,5 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Architecture/child_controller.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/media_folders_widget.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
@@ -12,8 +11,6 @@ class OnboardPage extends StatefulWidget {
 }
 
 class _OnboardPageState extends State<OnboardPage> {
-  final ChildController _mediaFolderContoller = ChildController();
-
   late final TextEditingController _tecCompanyName;
   late final TextEditingController _tecCarouselPath;
   late final TextEditingController _tecCarouselDuration;
@@ -122,7 +119,7 @@ class _OnboardPageState extends State<OnboardPage> {
                           crossAxisAlignment: .start,
                           children: [
                             Text("Media Locations", style: Theme.of(context).textTheme.titleMedium),
-                            Expanded(child: MediaFoldersWidget(controller: _mediaFolderContoller)),
+                            Expanded(child: MediaFoldersWidget()),
                           ],
                         ),
                       ),
@@ -138,7 +135,7 @@ class _OnboardPageState extends State<OnboardPage> {
   }
 
   void _save() {
-    _mediaFolderContoller.callAction();
+    // TODO???
   }
 
   Widget _onboardMessage() {

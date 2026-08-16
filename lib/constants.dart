@@ -86,4 +86,22 @@ class Constants {
       counter: helper == null ? null : Text(helper, style: const TextStyle(fontSize: 10)),
     );
   }
+
+  static Widget disableWidgetTree(bool isDisabled, {required Widget child, bool showProgress = false}) {
+    Widget response = Opacity(
+      opacity: isDisabled ? 0.6 : 1.0,
+      child: AbsorbPointer(
+        absorbing: isDisabled,
+        child: child,
+      ),
+    );
+    return (showProgress && isDisabled)
+        ? Stack(
+            children: [
+              response,
+              Center(child: CircularProgressIndicator()),
+            ],
+          )
+        : response;
+  }
 }

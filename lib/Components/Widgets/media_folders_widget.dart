@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Architecture/child_controller.dart';
 import 'package:mp_karaoke_ui/Components/ex_state.dart';
 import 'package:mp_karaoke_ui/Domain/media_folder.dart';
 import 'package:mp_karaoke_ui/Services/data_access.dart';
@@ -11,8 +10,7 @@ import 'package:mp_karaoke_ui/Services/folder_scan.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class MediaFoldersWidget extends StatefulWidget {
-  final ChildController controller;
-  const new({super.key, required this.controller});
+  const new({super.key});
 
   @override
   State<MediaFoldersWidget> createState() => _MediaFoldersWidgetState();
@@ -23,8 +21,6 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
 
   @override
   void initState() {
-    widget.controller.register(save);
-
     _getData();
     super.initState();
   }
@@ -38,51 +34,64 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
     );
   }
 
+  int selected = -1;
+  bool isDisabled = false;
   @override
   Widget build(BuildContext context) {
-    // _items.sort((a, b) => (a.id ?? 0).compareTo((b.id ?? 999)));
-
     final visibleItems = _items.where((item) => item.status != .deleted).toList();
 
-    return ListView(
-      children: [
-        ...List.generate(
-          visibleItems.length,
-          (index) {
-            final item = visibleItems[index];
+    return Constants.disableWidgetTree(
+      isDisabled,
+      showProgress: true,
+      child: ListView(
+        children: [
+          ...List.generate(
+            visibleItems.length,
+            (index) {
+              final item = visibleItems[index];
 
-            return ListTile(
-              title: Text(item.path),
-              titleTextStyle: Theme.of(context).textTheme.bodyLarge,
-              subtitle: _subTitle(item),
-              subtitleTextStyle: Theme.of(context).textTheme.bodySmall,
-              trailing: Row(
-                mainAxisSize: .min,
-                children: [
-                  if (item.monitor) Text(translate("Scan on Start")),
-                  if (item.id != null)
+              return ListTile(
+                selected: index == selected,
+                selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+                title: Text(item.path),
+                titleTextStyle: Theme.of(context).textTheme.bodyLarge,
+                subtitle: _subTitle(item),
+                subtitleTextStyle: Theme.of(context).textTheme.bodySmall,
+                leading: IconButton(
+                  onPressed: () => _addEdit(index),
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                ),
+                trailing: Row(
+                  mainAxisSize: .min,
+                  children: [
+                    if (item.monitor) Text(translate("Scan on Start")),
+                    if (item.id != null)
+                      IconButton(
+                        tooltip: 'Scan Now!',
+                        icon: const Icon(Icons.refresh, color: Colors.green),
+                        onPressed: () {
+                          _scanFolder(item);
+                        },
+                      ),
                     IconButton(
-                      tooltip: 'Scan Now!',
-                      icon: const Icon(Icons.refresh, color: Colors.green),
+                      tooltip: 'Remove',
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        FolderScan.instance.process(item).then((_) => _getData());
+                        item.status = .deleted;
+                        _save();
                       },
                     ),
-                  IconButton(
-                    tooltip: 'Remove',
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => setState(() => item.status = .deleted),
-                  ),
-                ],
-              ),
-              onTap: () => _edit(index),
-            );
-          },
-        ),
-        ListTile(
-          title: TextButton.icon(label: Text(translate("Add")), onPressed: () => _edit(-1), icon: Icon(Icons.add)),
-        ),
-      ],
+                  ],
+                ),
+                onTap: () => setState(() => selected = index),
+              );
+            },
+          ),
+          ListTile(
+            title: TextButton.icon(label: Text(translate("Add")), onPressed: () => _addEdit(-1), icon: Icon(Icons.add)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -97,7 +106,7 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
     }
   }
 
-  void _edit(int index) {
+  void _addEdit(int index) {
     final MediaFolderInfo? item = index >= 0 ? _items[index] : null;
     showDialog<MediaFolderInfo?>(
       context: context,
@@ -112,16 +121,29 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
             _items.add(response);
           }
         });
+        _save();
       }
     });
   }
 
-  void save() {
-    DataAccess.instance.publishMediaFolders(_items).then((_) => _getData());
+  void _scanFolder(MediaFolderInfo info) {
+    setState(() => isDisabled = true);
+    FolderScan.instance.process(info).then((_) {
+      _getData();
+      setState(() => isDisabled = false);
+    });
+  }
+
+  void _save() {
+    setState(() => isDisabled = true);
+    DataAccess.instance.publishMediaFolders(_items).then((_) {
+      _getData();
+      setState(() => isDisabled = false);
+    });
   }
 }
 
-// ==============================
+// =========================================================================================================
 class AddMediaFolderDialog extends StatefulWidget {
   final MediaFolderInfo? mediaFolderInfo;
   const new({super.key, required this.mediaFolderInfo});
