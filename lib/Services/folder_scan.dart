@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
 import 'package:mp_karaoke_ui/Domain/media_folder.dart';
 import 'package:mp_karaoke_ui/Domain/track.dart';
 import 'package:mp_karaoke_ui/Services/data_access.dart';
+import 'package:mp_karaoke_ui/Services/status_stream.dart';
 
 class FolderScan {
   FolderScan._();
@@ -18,6 +20,7 @@ class FolderScan {
     }
 
     try {
+      StatusStream.instance.setStatus('folderSync', StatusInfo('Starting Folder Sync'));
       _stack.add(info);
       final List<Track>? response = await Isolate.run<List<Track>?>(() => _isoFunc(info));
       if (response != null) {
@@ -27,11 +30,12 @@ class FolderScan {
         info.count = response.length;
         info.lastUpdated = DateTime.now();
         await DataAccess.instance.publishMediaFolders([info]);
+        StatusStream.instance.setStatus('folderSync', StatusInfo('Finished Folder Sync'));
+        Future.delayed(Duration(seconds: 5), () => StatusStream.instance.setStatus('folderSync', null));
         return true;
       }
     } finally {
       _stack.remove(info);
-      print('finish');
     }
 
     return false;

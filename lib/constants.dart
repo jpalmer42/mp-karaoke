@@ -8,10 +8,12 @@ class Constants {
   static const singleSpace = SizedBox(height: 8, width: 8);
   static const doubleSpace = SizedBox(height: 12, width: 12);
 
-  static Widget pleaseWait({String message = "Please Wait...", Color? color}) {
+  static Widget pleaseWait({String message = "Please Wait...", Color? color, Color? cardColor}) {
     return Container(
       alignment: Alignment.center,
+      padding: Constants.doublePadding,
       child: Card(
+        color: cardColor,
         child: Padding(
           padding: Constants.doublePadding,
           child: Column(
@@ -99,7 +101,7 @@ class Constants {
         ? Stack(
             children: [
               response,
-              Center(child: CircularProgressIndicator()),
+              Constants.pleaseWait(cardColor: Colors.blueGrey),
             ],
           )
         : response;

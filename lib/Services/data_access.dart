@@ -104,7 +104,6 @@ class DataAccess {
         }
         _db.execute('COMMIT');
       } catch (e) {
-        print(e);
         _db.execute('ROLLBACK');
       } finally {
         deleteAll.close();

@@ -130,7 +130,9 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
     setState(() => isDisabled = true);
     FolderScan.instance.process(info).then((_) {
       _getData();
-      setState(() => isDisabled = false);
+      if (mounted) {
+        setState(() => isDisabled = false);
+      }
     });
   }
 
@@ -138,7 +140,9 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
     setState(() => isDisabled = true);
     DataAccess.instance.publishMediaFolders(_items).then((_) {
       _getData();
-      setState(() => isDisabled = false);
+      if (mounted) {
+        setState(() => isDisabled = false);
+      }
     });
   }
 }
