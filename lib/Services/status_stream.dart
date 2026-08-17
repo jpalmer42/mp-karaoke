@@ -7,17 +7,27 @@ class StatusStream {
   static StatusStream? _instance;
   static StatusStream get instance => _instance ??= StatusStream._();
 
-  final _controller = StreamController<Map<String, StatusInfo>>();
-  final Map<String, StatusInfo> _status = {};
+  final _controller = StreamController<List<StatusInfo>>();
+  final List<StatusInfo> _status = [];
 
-  void setStatus(String key, StatusInfo? statusInfo) {
-    if (statusInfo == null) {
-      _status.remove(key);
+  void setStatus(StatusInfo statusInfo, {Duration? duration}) {
+    if (_status.contains(statusInfo)) {
+      if (duration == null) {
+        _status.remove(statusInfo);
+      }
     } else {
-      _status[key] = statusInfo;
+      _status.add(statusInfo);
     }
+
+    if (duration != null) {
+      Future.delayed(duration!, () {
+        _status.remove(statusInfo);
+        _controller.sink.add(_status);
+      });
+    }
+
     _controller.sink.add(_status);
   }
 
-  Stream<Map<String, StatusInfo>> get stream => _controller.stream;
+  Stream<List<StatusInfo>> get stream => _controller.stream;
 }

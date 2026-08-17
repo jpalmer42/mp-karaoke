@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/company_widget.dart';
+import 'package:mp_karaoke_ui/Components/Widgets/help_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/media_folders_widget.dart';
 import 'package:mp_karaoke_ui/Components/ex_state.dart';
 import 'package:mp_karaoke_ui/constants.dart';
@@ -24,8 +25,8 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
   @override
   Widget build(BuildContext context) {
     if (_wigets.isEmpty) {
-      _wigets.add(_wrapTitle(translate("Company Information"), child: CompanyWidget()));
-      _wigets.add(_wrapTitle(translate("Media Information"), child: MediaFoldersWidget()));
+      _wigets.add(_wrapTitle(translate("Company Information"), child: CompanyWidget(), help: 'company'));
+      _wigets.add(_wrapTitle(translate("Media Information"), child: MediaFoldersWidget(), help: 'media'));
       _wigets.add(Text("Finish"));
     }
     return Scaffold(
@@ -36,7 +37,7 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
           ElevatedButton.icon(
             onPressed: () {},
             label: Text(translate("Skip")),
-            icon: Icon(Icons.skip_next),
+            icon: Icon(Icons.cancel, color: Colors.red),
           ),
         ],
       ),
@@ -69,7 +70,7 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
                 });
               },
               label: Text(translate("Back")),
-              icon: Icon(Icons.skip_previous),
+              icon: Icon(Icons.chevron_left, color: Colors.blue),
             ),
           const Spacer(),
           if (_index < _wigets.length - 2)
@@ -80,7 +81,7 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
                 });
               },
               label: Text(translate("Next")),
-              icon: Icon(Icons.skip_next),
+              icon: Icon(Icons.chevron_right, color: Colors.green),
             ),
           if (_index == _wigets.length - 2)
             ElevatedButton.icon(
@@ -90,14 +91,14 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
                 });
               },
               label: Text(translate("Finish")),
-              icon: Icon(Icons.flag),
+              icon: Icon(Icons.flag, color: Colors.white),
             ),
         ],
       ),
     );
   }
 
-  Widget _wrapTitle(String title, {required Widget child}) {
+  Widget _wrapTitle(String title, {required Widget child, String? help}) {
     return Container(
       width: double.infinity,
       padding: Constants.doublePadding,
@@ -115,9 +116,18 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
             ),
             const Divider(),
             Expanded(child: child),
+            if (help != null) _showHelp(help),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _showHelp(String help) {
+    return Container(
+      width: double.infinity,
+      padding: Constants.singlePadding,
+      child: HelpWidget(helpFile: help),
     );
   }
 }

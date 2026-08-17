@@ -20,7 +20,9 @@ class FolderScan {
     }
 
     try {
-      StatusStream.instance.setStatus('folderSync', StatusInfo('Starting Folder Sync'));
+      StatusInfo status = StatusInfo('Starting Folder Sync');
+      StatusStream.instance.setStatus(status);
+
       _stack.add(info);
       final List<Track>? response = await Isolate.run<List<Track>?>(() => _isoFunc(info));
       if (response != null) {
@@ -30,8 +32,7 @@ class FolderScan {
         info.count = response.length;
         info.lastUpdated = DateTime.now();
         await DataAccess.instance.publishMediaFolders([info]);
-        StatusStream.instance.setStatus('folderSync', StatusInfo('Finished Folder Sync'));
-        Future.delayed(Duration(seconds: 5), () => StatusStream.instance.setStatus('folderSync', null));
+        StatusStream.instance.setStatus(status..text = 'Folder Sync Finshed', duration: Duration(seconds: 3));
         return true;
       }
     } finally {

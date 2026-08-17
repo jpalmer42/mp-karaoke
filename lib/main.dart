@@ -5,37 +5,46 @@ import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
 import 'package:mp_karaoke_ui/Services/data_access.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 import 'package:mp_karaoke_ui/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:screen_retriever/screen_retriever.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Must add this line.
+  WakelockPlus.enable();
   await windowManager.ensureInitialized();
 
+  await windowManagerStuff();
+
+  runApp(const MainApp());
+}
+
+Future<void> windowManagerStuff() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  double? x = prefs.getDouble('win_x');
+  double? y = prefs.getDouble('win_y');
+  double? width = prefs.getDouble('win_width');
+  double? height = prefs.getDouble('win_height');
+  bool isMaximized = prefs.getBool('win_maximized') ?? false;
+
   WindowOptions windowOptions = WindowOptions(
-    size: Size(1024, 768),
-    center: true,
+    size: Size(width ?? 1000, height ?? 700),
+    center: (x == null || y == null), // Center if no saved position exists
     backgroundColor: Colors.transparent,
-    // skipTaskbar: false,
-    // titleBarStyle: TitleBarStyle.hidden,
+    skipTaskbar: false,
   );
+
   windowManager.waitUntilReadyToShow(windowOptions, () async {
-    List<Display> displays = await screenRetriever.getAllDisplays();
-
-    if (displays.length > 1) {
-      Display secondaryDisplay = displays[2];
-      Offset topLeft = secondaryDisplay.visiblePosition!; // ?? secondaryDisplay.position;
-
-      var scFactor = 1.25; //secondaryDisplay.scaleFactor!.toDouble();
-      await windowManager.setPosition(topLeft.scale(scFactor, scFactor));
+    if (x != null && y != null) {
+      await windowManager.setPosition(Offset(x, y));
     }
-
+    if (isMaximized) {
+      await windowManager.maximize();
+    }
     await windowManager.show();
     await windowManager.focus();
   });
-
-  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -54,7 +63,7 @@ class MainApp extends StatelessWidget {
                 future: DataAccess.instance.firstTime(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    return snapshot.data == false ? MainUIPage() : OnboardWizard();
+                    return AppListener(child: snapshot.data == false ? MainUIPage() : OnboardWizard());
                   } else if (snapshot.hasError) {
                     return Constants.unrecoverable(message: snapshot.error.toString());
                   } else {
@@ -68,5 +77,54 @@ class MainApp extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class AppListener extends StatefulWidget {
+  final Widget child;
+  const new({super.key, required this.child});
+
+  @override
+  State<AppListener> createState() => _AppListenerState();
+}
+
+class _AppListenerState extends State<AppListener> with WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    windowManager.setPreventClose(true);
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowClose() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    bool maximized = await windowManager.isMaximized();
+    await prefs.setBool('win_maximized', maximized);
+
+    if (!maximized) {
+      Offset position = await windowManager.getPosition();
+      Size size = await windowManager.getSize();
+
+      await prefs.setDouble('win_x', position.dx);
+      await prefs.setDouble('win_y', position.dy);
+      await prefs.setDouble('win_width', size.width);
+      await prefs.setDouble('win_height', size.height);
+    }
+
+    windowManager.setPreventClose(false);
+    await windowManager.close();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

@@ -26,12 +26,14 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
   }
 
   void _getData() {
-    DataAccess.instance.fetchMediaFolders().then(
-      (folders) => setState(() {
-        _items.clear();
-        _items.addAll(folders);
-      }),
-    );
+    if (mounted) {
+      DataAccess.instance.fetchMediaFolders().then(
+        (folders) => setState(() {
+          _items.clear();
+          _items.addAll(folders);
+        }),
+      );
+    }
   }
 
   int selected = -1;

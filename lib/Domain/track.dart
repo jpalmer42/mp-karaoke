@@ -6,17 +6,19 @@ class Track extends BaseInfo {
   int? id;
   int? mediaFolderId;
   String pathName;
+  String? fileName;
   String? code;
   String? artist;
   String? title;
   int length;
   DateTime? lastUpdated;
   String? genres;
+  int? rating;
   String? searchable;
 
-  Track(this.pathName, {this.id, this.mediaFolderId, this.code, this.artist, this.title, this.length = 0, this.lastUpdated, this.genres}) {
-    String fileName = pathName.substring(pathName.lastIndexOf(Platform.pathSeparator) + 1);
-    final parts = fileName.split(" - ");
+  Track(this.pathName, {this.id, this.mediaFolderId, this.code, this.artist, this.title, this.length = 0, this.lastUpdated, this.genres, this.rating}) {
+    fileName = pathName.substring(pathName.lastIndexOf(Platform.pathSeparator) + 1);
+    final parts = fileName!.split(" - ");
     final len = parts.length;
     if (len == 2) {
       code ??= 'zzNoCode';

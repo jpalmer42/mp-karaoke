@@ -33,7 +33,7 @@ class DataAccess {
         "CREATE TABLE IF NOT EXISTS media_folders (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, path TEXT, monitor TEXT, count INT)",
       ) //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS tracks (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, id_media_folder INTEGER NOT NULL, path_name TEXT, code TEXT, artist TEXT, title TEXT, length INT, genres TEXT)",
+        "CREATE TABLE IF NOT EXISTS tracks (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, id_media_folder INTEGER NOT NULL, path_name TEXT, file_name TEXT, code TEXT, artist TEXT, title TEXT, length INT, genres TEXT, rating INT)",
       ) //
       ;
   }
@@ -117,12 +117,16 @@ class DataAccess {
   }
 
   Future<List<Track>> fetchTracksById(int? id) async {
+    String query = "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres FROM tracks";
+    if (id != null) query = "$query WHERE id_media_folder=?";
+
     return Future<List<Track>>(
       () {
         List<Track> response = [];
         ResultSet results = _db.select(
-          "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres FROM tracks WHERE id_media_folder=?",
-          [id],
+          // "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres FROM tracks WHERE id_media_folder=?",
+          query,
+          (id != null) ? [id] : [],
         );
         for (var result in results) {
           String? dateStr = result.values[1] as String?;
@@ -152,10 +156,10 @@ class DataAccess {
       "DELETE FROM tracks WHERE id=?",
     );
     final insert = _db.prepare(
-      "INSERT INTO tracks (last_updated, id_media_folder, path_name, code, artist, title, length, genres) VALUES (?,?,?,?,?,?,?,?)",
+      "INSERT INTO tracks (last_updated, id_media_folder, path_name, file_name, code, artist, title, length, genres, rating) VALUES (?,?,?,?,?,?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE tracks set last_updated=?, id_media_folder=?, path_name=?, code=?, artist=?, title=?, length=?, genres=? WHERE id=?",
+      "UPDATE tracks set last_updated=?, id_media_folder=?, path_name=?, file_name=?, code=?, artist=?, title=?, length=?, genres=?, rating=? WHERE id=?",
     );
 
     return Future<void>(
@@ -173,22 +177,26 @@ class DataAccess {
                   item.lastUpdated?.toIso8601String(),
                   item.mediaFolderId,
                   item.pathName,
+                  item.fileName,
                   item.code,
                   item.artist,
                   item.title,
                   item.length,
                   item.genres,
+                  item.rating,
                 ]);
               } else {
                 update.execute([
                   item.lastUpdated?.toIso8601String(),
                   item.mediaFolderId,
                   item.pathName,
+                  item.fileName,
                   item.code,
                   item.artist,
                   item.title,
                   item.length,
                   item.genres,
+                  item.rating,
                   item.id,
                 ]);
               }
