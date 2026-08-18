@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
 import 'package:mp_karaoke_ui/Domain/media_folder.dart';
 import 'package:mp_karaoke_ui/Domain/track.dart';
 import 'package:mp_karaoke_ui/Services/data_access.dart';
 import 'package:mp_karaoke_ui/Services/status_stream.dart';
+import 'package:mp_karaoke_ui/config.dart';
 
 class FolderScan {
   FolderScan._();
@@ -24,7 +27,8 @@ class FolderScan {
       StatusStream.instance.setStatus(status);
 
       _stack.add(info);
-      final List<Track>? response = await Isolate.run<List<Track>?>(() => _isoFunc(info));
+      final RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+      final List<Track>? response = await Isolate.run<List<Track>?>(() => _isoFunc(info, rootIsolateToken));
       if (response != null) {
         await DataAccess.instance.publishTracks(info.id, response);
 
@@ -44,9 +48,13 @@ class FolderScan {
 
   static final RegExp typePattern = RegExp(r'(\.CDG|\.ZIP)$', caseSensitive: false);
 
-  Future<List<Track>?> _isoFunc(MediaFolderInfo info) async {
+  Future<List<Track>?> _isoFunc(MediaFolderInfo info, RootIsolateToken rootIsolateToken) async {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+
     final Directory dir = Directory(info.path);
     if (!dir.existsSync()) return null;
+
+    await AppConfig.init(); // New Spawned Thread!
 
     List<Track> tracks = await DataAccess.instance.fetchTracksById(info.id);
     tracks.forEach((item) => item.status = .deleted);

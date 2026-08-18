@@ -10,7 +10,11 @@ import 'package:mp_karaoke_ui/Services/folder_scan.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class MediaFoldersWidget extends StatefulWidget {
-  const new({super.key});
+  final void Function(bool isScanning)? onScan;
+  const new({
+    super.key,
+    this.onScan,
+  });
 
   @override
   State<MediaFoldersWidget> createState() => _MediaFoldersWidgetState();
@@ -130,20 +134,24 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
 
   void _scanFolder(MediaFolderInfo info) {
     setState(() => isDisabled = true);
+    widget.onScan?.call(true);
     FolderScan.instance.process(info).then((_) {
       _getData();
       if (mounted) {
         setState(() => isDisabled = false);
+        widget.onScan?.call(false);
       }
     });
   }
 
   void _save() {
     setState(() => isDisabled = true);
+    widget.onScan?.call(true);
     DataAccess.instance.publishMediaFolders(_items).then((_) {
       _getData();
       if (mounted) {
         setState(() => isDisabled = false);
+        widget.onScan?.call(false);
       }
     });
   }

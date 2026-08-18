@@ -15,8 +15,21 @@ class Track extends BaseInfo {
   String? genres;
   int? rating;
   String? searchable;
+  String? json;
 
-  Track(this.pathName, {this.id, this.mediaFolderId, this.code, this.artist, this.title, this.length = 0, this.lastUpdated, this.genres, this.rating}) {
+  Track(
+    this.pathName, {
+    this.id,
+    this.mediaFolderId,
+    this.code,
+    this.artist,
+    this.title,
+    this.length = 0,
+    this.lastUpdated,
+    this.genres,
+    this.rating,
+    this.json,
+  }) {
     fileName = pathName.substring(pathName.lastIndexOf(Platform.pathSeparator) + 1);
     final parts = fileName!.split(" - ");
     final len = parts.length;

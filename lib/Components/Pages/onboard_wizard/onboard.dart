@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/company_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/help_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/media_folders_widget.dart';
+import 'package:mp_karaoke_ui/Components/Widgets/venues_widget.dart';
 import 'package:mp_karaoke_ui/Components/ex_state.dart';
+import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class OnboardWizard extends StatefulWidget {
@@ -22,33 +24,50 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
     super.initState();
   }
 
+  bool _disabled = false;
   @override
   Widget build(BuildContext context) {
     if (_wigets.isEmpty) {
       _wigets.add(_wrapTitle(translate("Company Information"), child: CompanyWidget(), help: 'company'));
-      _wigets.add(_wrapTitle(translate("Media Information"), child: MediaFoldersWidget(), help: 'media'));
+      _wigets.add(
+        _wrapTitle(
+          translate("Media Information"),
+          child: MediaFoldersWidget(
+            onScan: (bool isScanning) => setState(() {
+              _disabled = isScanning;
+            }),
+          ),
+          help: 'media',
+        ),
+      );
+      _wigets.add(_wrapTitle(translate("Venues"), child: VenuesWidget()));
       _wigets.add(Text("Finish"));
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: Constants.appBarTitle(context, subTitle: translate("Onboarding Wizard")),
-        actionsPadding: EdgeInsets.symmetric(horizontal: 8),
-        actions: [
-          ElevatedButton.icon(
-            onPressed: () {},
-            label: Text(translate("Skip")),
-            icon: Icon(Icons.cancel, color: Colors.red),
-          ),
-        ],
-      ),
-      body: Container(
-        margin: Constants.doublePadding,
-        decoration: BoxDecoration(border: Border.all(color: Theme.of(context).colorScheme.onPrimary)),
-        child: Column(
-          children: [
-            Expanded(child: _wigets[_index]),
-            _navigation(),
+
+    // -----------------===============----------------=================
+    return Constants.disableWidgetTree(
+      _disabled,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Constants.appBarTitle(context, subTitle: translate("Onboarding Wizard")),
+          actionsPadding: EdgeInsets.symmetric(horizontal: 8),
+          actions: [
+            ElevatedButton.icon(
+              onPressed: () {},
+              label: Text(translate("Skip")),
+              icon: Icon(Icons.cancel, color: Colors.red),
+            ),
           ],
+        ),
+        body: Container(
+          margin: Constants.doublePadding,
+          decoration: BoxDecoration(border: Border.all(color: Theme.of(context).colorScheme.onPrimary)),
+          child: Column(
+            children: [
+              Expanded(child: _wigets[_index]),
+              _navigation(),
+            ],
+          ),
         ),
       ),
     );
@@ -87,7 +106,8 @@ class _OnboardWizardState extends ExState<OnboardWizard> {
             ElevatedButton.icon(
               onPressed: () {
                 setState(() {
-                  _index++;
+                  AppConfig.instance.prefs.setBool(AppConfig.spInitialized, true);
+                  Navigator.of(context).pushNamedAndRemoveUntil('mainUI', (_) => false);
                 });
               },
               label: Text(translate("Finish")),

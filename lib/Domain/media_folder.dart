@@ -6,8 +6,9 @@ class MediaFolderInfo extends BaseInfo {
   bool monitor;
   DateTime? lastUpdated;
   int? count;
+  String? json;
 
-  MediaFolderInfo(this.path, {this.monitor = false, this.lastUpdated, this.count, this.id});
+  MediaFolderInfo(this.path, {this.monitor = false, this.lastUpdated, this.count, this.id, this.json});
 
   @override
   String toString() {
