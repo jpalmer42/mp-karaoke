@@ -1,6 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Components/ex_state.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class CompanyWidget extends StatefulWidget {
@@ -10,7 +10,7 @@ class CompanyWidget extends StatefulWidget {
   State<CompanyWidget> createState() => _CompanyWidgetState();
 }
 
-class _CompanyWidgetState extends ExState<CompanyWidget> {
+class _CompanyWidgetState extends State<CompanyWidget> with Translate {
   late final TextEditingController _tecCompanyName;
 
   late final TextEditingController _tecCarouselPath;

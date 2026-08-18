@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
   static const String spInitialized = 'Initialized';
+  static const String spLanguage = 'language';
 
   late final SharedPreferences _preferences;
   SharedPreferences get prefs => _preferences;
@@ -14,26 +15,18 @@ class AppConfig {
 
   AppConfig._();
   static AppConfig? _instance;
+
   static AppConfig get instance {
     assert(_instance != null, 'AppConfig must be initialized using AppConfig.init() before accessing instance.');
     return _instance!;
   }
 
-  // Async initializer to be called in main()
   static Future<void> init() async {
     if (_instance != null) return;
 
     final config = AppConfig._();
-    try {
-      config._preferences = await SharedPreferences.getInstance();
-    } catch (err) {
-      print(err);
-    }
-    try {
-      config._appSupportDir = await getApplicationSupportDirectory();
-    } catch (err) {
-      print(err);
-    }
+    config._preferences = await SharedPreferences.getInstance();
+    config._appSupportDir = await getApplicationSupportDirectory();
 
     _instance = config;
   }

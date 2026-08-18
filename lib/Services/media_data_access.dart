@@ -5,13 +5,13 @@ import 'package:mp_karaoke_ui/Domain/track.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-class DataAccess {
+class MediaDataAccess {
   late final Database _db;
 
-  static DataAccess? _instance;
-  static DataAccess get instance => _instance ??= DataAccess._();
+  static MediaDataAccess? _instance;
+  static MediaDataAccess get instance => _instance ??= MediaDataAccess._();
 
-  DataAccess._() {
+  MediaDataAccess._() {
     String folder = '${AppConfig.instance.appSupportDir.path}${Platform.pathSeparator}mpk-media.db';
     _db = sqlite3.open(folder);
     _createTables();

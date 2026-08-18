@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/play_queue.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/roster_list.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 
-class MainUIPage extends StatelessWidget {
+class MainUIPage extends StatelessWidget with Translate {
   const new({super.key});
 
   @override
@@ -25,6 +26,15 @@ class MainUIPage extends StatelessWidget {
                       height: double.infinity,
                       margin: EdgeInsets.all(4),
                       decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
+                      child: Text('SongList'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      margin: EdgeInsets.all(4),
+                      decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
                       child: RosterListWidget(),
                     ),
                   ),
@@ -35,15 +45,6 @@ class MainUIPage extends StatelessWidget {
                       margin: EdgeInsets.all(4),
                       decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
                       child: PlayQueueWidget(),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      margin: EdgeInsets.all(4),
-                      decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-                      child: Text('3'),
                     ),
                   ),
                 ],

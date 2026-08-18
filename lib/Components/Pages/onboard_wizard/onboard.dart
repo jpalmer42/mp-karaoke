@@ -3,7 +3,7 @@ import 'package:mp_karaoke_ui/Components/Widgets/company_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/help_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/media_folders_widget.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/venues_widget.dart';
-import 'package:mp_karaoke_ui/Components/ex_state.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
@@ -14,7 +14,7 @@ class OnboardWizard extends StatefulWidget {
   State<OnboardWizard> createState() => _OnboardWizardState();
 }
 
-class _OnboardWizardState extends ExState<OnboardWizard> {
+class _OnboardWizardState extends State<OnboardWizard> with Translate {
   int _index = 0;
   final List<Widget> _wigets = [];
 

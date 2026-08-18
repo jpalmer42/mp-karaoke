@@ -3,9 +3,9 @@ import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Components/ex_state.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/media_folder.dart';
-import 'package:mp_karaoke_ui/Services/data_access.dart';
+import 'package:mp_karaoke_ui/Services/media_data_access.dart';
 import 'package:mp_karaoke_ui/Services/folder_scan.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
@@ -20,7 +20,7 @@ class MediaFoldersWidget extends StatefulWidget {
   State<MediaFoldersWidget> createState() => _MediaFoldersWidgetState();
 }
 
-class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
+class _MediaFoldersWidgetState extends State<MediaFoldersWidget> with Translate {
   late final List<MediaFolderInfo> _items = [];
 
   @override
@@ -31,7 +31,7 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
 
   void _getData() {
     if (mounted) {
-      DataAccess.instance.fetchMediaFolders().then(
+      MediaDataAccess.instance.fetchMediaFolders().then(
         (folders) => setState(() {
           _items.clear();
           _items.addAll(folders);
@@ -147,7 +147,7 @@ class _MediaFoldersWidgetState extends ExState<MediaFoldersWidget> {
   void _save() {
     setState(() => isDisabled = true);
     widget.onScan?.call(true);
-    DataAccess.instance.publishMediaFolders(_items).then((_) {
+    MediaDataAccess.instance.publishMediaFolders(_items).then((_) {
       _getData();
       if (mounted) {
         setState(() => isDisabled = false);
@@ -166,7 +166,7 @@ class AddMediaFolderDialog extends StatefulWidget {
   State<AddMediaFolderDialog> createState() => _AddMediaFolderDialogState();
 }
 
-class _AddMediaFolderDialogState extends ExState<AddMediaFolderDialog> {
+class _AddMediaFolderDialogState extends State<AddMediaFolderDialog> with Translate {
   late final TextEditingController _tecFolder;
   bool _monitored = false;
   late final MediaFolderInfo _response;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Components/ex_state.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Services/status_stream.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 import 'package:window_manager/window_manager.dart';
@@ -11,7 +11,7 @@ class StatusBarWidget extends StatefulWidget {
   State<StatusBarWidget> createState() => _StatusBarWidgetState();
 }
 
-class _StatusBarWidgetState extends ExState<StatusBarWidget> {
+class _StatusBarWidgetState extends State<StatusBarWidget> with Translate {
   @override
   Widget build(BuildContext context) {
     return Container(
