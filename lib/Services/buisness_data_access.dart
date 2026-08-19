@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:mp_karaoke_ui/Domain/business_info.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -18,24 +19,58 @@ class BusinessDataAccess {
   void _createTables() {
     _db //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS business (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS businesses (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
       ) //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, business_id INTEGER NOT NULL, last_updated TEXT, name TEXT, json TEXT)",
       ) //
       ;
   }
 
-  Future<BusinessInfo> fetchBusiness() {
+  Future<BusinessInfo?> fetchBusiness() async {
     BusinessInfo? response;
-    ;
+
     final ResultSet results = _db.select(
-      "id, last_updated, name, home_venue, date_added, date_last, json FROM business",
+      "id, last_updated, name, json FROM businesses",
     );
     if (results.isNotEmpty) {
-      response = BusinessInfo();
-    }
+      final result = results.first;
 
+      String? dateStr = result.values[1] as String?;
+      DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+
+      response = BusinessInfo(
+        id: result.values[0] as int,
+        lastUpdated: date,
+        name: result.values[2] as String,
+        json: result.values[3] as String?,
+      );
+
+      response.venues = await fetchVenuesByBuisnessId(response.id!);
+    }
     return response;
+  }
+
+  Future<List<VenueInfo>> fetchVenuesByBuisnessId(int id) async {
+    List<VenueInfo> response = [];
+    final results = _db.select("id, business_id, last_updated, name, json WHERE business_id=?", [id]);
+    for (final result in results) {
+      String? dateStr = result.values[2] as String?;
+      DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+      response.add(
+        VenueInfo(
+          id: result.values[0] as int,
+          businessId: result.values[1] as int,
+          lastUpdated: date,
+          name: result.values[3] as String,
+          json: result.values[4] as String?,
+        ),
+      );
+    }
+    return response;
+  }
+
+  Future<void> publishBusiness(BusinessInfo payload) async {
+    return;
   }
 }
