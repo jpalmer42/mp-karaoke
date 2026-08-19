@@ -176,7 +176,7 @@ class PatronDataAccess {
     try {
       _db.execute('BEGIN TRANSACTION');
       for (final item in history) {
-        item.idPatron = id!;
+        item.idPatron = id;
 
         if (item.status == .deleted) {
           if (item.id != null) {

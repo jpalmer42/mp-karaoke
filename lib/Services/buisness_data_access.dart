@@ -27,11 +27,11 @@ class BusinessDataAccess {
       ;
   }
 
-  Future<BusinessInfo?> fetchBusiness() async {
+  Future<BusinessInfo> fetchBusiness() async {
     BusinessInfo? response;
 
     final ResultSet results = _db.select(
-      "id, last_updated, name, json FROM businesses",
+      "SELECT id, last_updated, name, json FROM businesses",
     );
     if (results.isNotEmpty) {
       final result = results.first;
@@ -48,12 +48,12 @@ class BusinessDataAccess {
 
       response.venues = await fetchVenuesByBuisnessId(response.id!);
     }
-    return response;
+    return response ?? BusinessInfo(name: '');
   }
 
   Future<List<VenueInfo>> fetchVenuesByBuisnessId(int id) async {
     List<VenueInfo> response = [];
-    final results = _db.select("id, business_id, last_updated, name, json WHERE business_id=?", [id]);
+    final results = _db.select("SELECT id, business_id, last_updated, name, json WHERE business_id=?", [id]);
     for (final result in results) {
       String? dateStr = result.values[2] as String?;
       DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
@@ -72,7 +72,7 @@ class BusinessDataAccess {
 
   Future<void> publishBusiness(List<BusinessInfo> payload) async {
     final deleteAll = _db.prepare(
-      "DELETE FROM venues WHERE id_business=?",
+      "DELETE FROM venues WHERE business_id=?",
     );
     final delete = _db.prepare(
       "DELETE FROM businesses WHERE id=?",

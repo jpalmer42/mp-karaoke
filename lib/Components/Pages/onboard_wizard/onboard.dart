@@ -28,7 +28,7 @@ class _OnboardWizardState extends State<OnboardWizard> with Translate {
   @override
   Widget build(BuildContext context) {
     if (_wigets.isEmpty) {
-      _wigets.add(_wrapTitle(translate("Company Information"), child: CompanyWidget(), help: 'company'));
+      _wigets.add(_wrapTitle(translate("Company Information"), child: CompanyWidgetEntry(), help: 'company'));
       _wigets.add(
         _wrapTitle(
           translate("Media Information"),
