@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:mp_karaoke_ui/Domain/patron.dart';
+import 'package:mp_karaoke_ui/Domain/patron_info.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -27,15 +27,15 @@ class PatronDataAccess {
       ;
   }
 
-  Future<List<Patron>> searchPatronsByName(String criteria) async {
-    List<Patron> response = [];
+  Future<List<PatronInfo>> searchPatronsByName(String criteria) async {
+    List<PatronInfo> response = [];
 
     final ResultSet results = _db.select("SELECT id, name, home_venue FROM patron WHERE name like ? COLLATE NOCASE or alias like ? COLLATE NOCASE", [
       ['%$criteria%', '%$criteria%'],
     ]);
     for (final item in results) {
       response.add(
-        Patron(
+        PatronInfo(
           id: item.values[0] as int,
           name: item.values[1] as String,
           homeVenue: item.values[2] as String?,
@@ -45,8 +45,8 @@ class PatronDataAccess {
     return response;
   }
 
-  Future<Patron?> fetchPatronById(int id) async {
-    Patron? response;
+  Future<PatronInfo?> fetchPatronById(int id) async {
+    PatronInfo? response;
 
     final ResultSet patronResults = _db.select(
       "id, last_updated, name, home_venue, date_added, date_last, json FROM patron WHERE id=?",
@@ -63,7 +63,7 @@ class PatronDataAccess {
       final dateLastStr = item.values[5];
       DateTime? dateLast = (dateLastStr is String) ? DateTime.tryParse(dateLastStr) : null;
 
-      response = Patron(
+      response = PatronInfo(
         id: item.values[0] as int,
         lastUpdated: dateUpdated,
         name: item.values[1] as String,
@@ -73,7 +73,7 @@ class PatronDataAccess {
         json: item.values[6] as String,
       );
 
-      List<PatronHistory> history = [];
+      List<PatronHistoryInfo> history = [];
       final ResultSet historyResults = _db.select(
         "SELECT id, last_updated, id_patron, fileName, artist, title, count, json FROM patron_history WHERE id_patron=?",
         [id],
@@ -82,7 +82,7 @@ class PatronDataAccess {
         final dateStr = item.values[1];
         DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
         history.add(
-          PatronHistory(
+          PatronHistoryInfo(
             id: item.values[0] as int,
             lastUpdated: date,
             idPatron: item.values[2] as int,
@@ -99,7 +99,7 @@ class PatronDataAccess {
     return response;
   }
 
-  Future<void> publishPatron(Patron patron) async {
+  Future<void> publishPatron(PatronInfo patron) async {
     final delete = _db.prepare(
       "DELETE FROM patron_history WHERE id_patron=?;DELETE FROM patron WHERE id=?",
     );
@@ -155,7 +155,7 @@ class PatronDataAccess {
         }
       }
 
-      for (final item in patron.history ?? [] as List<PatronHistory>) {
+      for (final item in patron.history ?? [] as List<PatronHistoryInfo>) {
         item.idPatron = patron.id!;
 
         if (item.status == .deleted) {

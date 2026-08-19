@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:mp_karaoke_ui/Domain/base.dart';
 
-class Track extends BaseInfo {
+class TrackInfo extends BaseInfo {
   int? id;
   int? mediaFolderId;
   String pathName;
@@ -17,7 +17,7 @@ class Track extends BaseInfo {
   String? searchable;
   String? json;
 
-  Track(
+  TrackInfo(
     this.pathName, {
     this.id,
     this.mediaFolderId,

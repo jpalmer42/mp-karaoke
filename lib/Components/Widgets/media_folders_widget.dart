@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
-import 'package:mp_karaoke_ui/Domain/media_folder.dart';
+import 'package:mp_karaoke_ui/Domain/media_folder_info.dart';
 import 'package:mp_karaoke_ui/Services/media_data_access.dart';
 import 'package:mp_karaoke_ui/Services/folder_scan.dart';
 import 'package:mp_karaoke_ui/constants.dart';

@@ -25,4 +25,17 @@ class BusinessDataAccess {
       ) //
       ;
   }
+
+  Future<BusinessInfo> fetchBusiness() {
+    BusinessInfo? response;
+    ;
+    final ResultSet results = _db.select(
+      "id, last_updated, name, home_venue, date_added, date_last, json FROM business",
+    );
+    if (results.isNotEmpty) {
+      response = BusinessInfo();
+    }
+
+    return response;
+  }
 }

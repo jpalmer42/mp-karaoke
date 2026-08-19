@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:mp_karaoke_ui/Domain/media_folder.dart';
-import 'package:mp_karaoke_ui/Domain/track.dart';
+import 'package:mp_karaoke_ui/Domain/media_folder_info.dart';
+import 'package:mp_karaoke_ui/Domain/track_info.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -108,18 +108,18 @@ class MediaDataAccess {
     return;
   }
 
-  Future<List<Track>> fetchTracksById(int? id) async {
+  Future<List<TrackInfo>> fetchTracksById(int? id) async {
     String query = "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres, json FROM tracks";
     if (id != null) query = "$query WHERE id_media_folder=?";
 
-    List<Track> response = [];
+    List<TrackInfo> response = [];
     ResultSet results = _db.select(query, (id != null) ? [id] : []);
     for (var result in results) {
       String? dateStr = result.values[1] as String?;
       DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
 
       response.add(
-        Track(
+        TrackInfo(
           result.values[3] as String,
           id: result.values[0] as int,
           lastUpdated: date,
@@ -136,7 +136,7 @@ class MediaDataAccess {
     return response;
   }
 
-  Future<void> publishTracks(int? id, List<Track> tracks) async {
+  Future<void> publishTracks(int? id, List<TrackInfo> tracks) async {
     final delete = _db.prepare(
       "DELETE FROM tracks WHERE id=?",
     );

@@ -3,8 +3,8 @@ import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
-import 'package:mp_karaoke_ui/Domain/media_folder.dart';
-import 'package:mp_karaoke_ui/Domain/track.dart';
+import 'package:mp_karaoke_ui/Domain/media_folder_info.dart';
+import 'package:mp_karaoke_ui/Domain/track_info.dart';
 import 'package:mp_karaoke_ui/Services/media_data_access.dart';
 import 'package:mp_karaoke_ui/Services/status_stream.dart';
 import 'package:mp_karaoke_ui/config.dart';
@@ -27,7 +27,7 @@ class FolderScan {
 
       _stack.add(info);
       final RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
-      final List<Track>? response = await Isolate.run<List<Track>?>(() => _isoFunc(info, rootIsolateToken));
+      final List<TrackInfo>? response = await Isolate.run<List<TrackInfo>?>(() => _isoFunc(info, rootIsolateToken));
       if (response != null) {
         await MediaDataAccess.instance.publishTracks(info.id, response);
 
@@ -47,7 +47,7 @@ class FolderScan {
 
   static final RegExp typePattern = RegExp(r'(\.CDG|\.ZIP)$', caseSensitive: false);
 
-  Future<List<Track>?> _isoFunc(MediaFolderInfo info, RootIsolateToken rootIsolateToken) async {
+  Future<List<TrackInfo>?> _isoFunc(MediaFolderInfo info, RootIsolateToken rootIsolateToken) async {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     final Directory dir = Directory(info.path);
@@ -55,9 +55,9 @@ class FolderScan {
 
     await AppConfig.init(); // New Spawned Thread!
 
-    List<Track> tracks = await MediaDataAccess.instance.fetchTracksById(info.id);
+    List<TrackInfo> tracks = await MediaDataAccess.instance.fetchTracksById(info.id);
     tracks.forEach((item) => item.status = .deleted);
-    final Map<String, Track> mapTrack = {for (var track in tracks) track.pathName: track};
+    final Map<String, TrackInfo> mapTrack = {for (var track in tracks) track.pathName: track};
 
     dir.listSync(recursive: true).forEach((entry) {
       if (entry is File) {
@@ -67,7 +67,7 @@ class FolderScan {
             track.status = .unchanged;
           } else {
             tracks.add(
-              Track(entry.path)
+              TrackInfo(entry.path)
                 ..status = .updated
                 ..mediaFolderId = info.id,
             );
