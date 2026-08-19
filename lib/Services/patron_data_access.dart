@@ -112,15 +112,6 @@ class PatronDataAccess {
     final update = _db.prepare(
       "UPDATE patron set last_updated=?, name=?, home_venue=?, date_added=?, date_last=?, json=? FROM patron WHERE id=?",
     );
-    final deleteHist = _db.prepare(
-      "DELETE FROM patron_history WHERE id=?",
-    );
-    final insertHist = _db.prepare(
-      "INSERT INTO patron_history (last_updated, id_patron, fileName, artist, title, count, json) VALUES (?,?,?,?,?,?,?,?)",
-    );
-    final updateHist = _db.prepare(
-      "UPDATE patron_history set last_updated=?, id_patron=?, fileName=?, artist=?, title=?, count=?, json=? WHERE id=?",
-    );
 
     try {
       _db.execute('BEGIN TRANSACTION');
@@ -155,16 +146,45 @@ class PatronDataAccess {
         }
       }
 
-      for (final item in patron.history ?? [] as List<PatronHistoryInfo>) {
-        item.idPatron = patron.id!;
+      await publishPatronHistory(patron.id, patron.history, transactional: false);
+
+      _db.execute('COMMIT');
+    } catch (e) {
+      _db.execute('ROLLBACK');
+    } finally {
+      deleteAllHist.close();
+      delete.close();
+      insert.close();
+      update.close();
+    }
+    return;
+  }
+
+  Future<void> publishPatronHistory(int? id, List<PatronHistoryInfo>? history, {bool transactional = true}) async {
+    if (id == null || history == null) return;
+
+    final delete = _db.prepare(
+      "DELETE FROM patron_history WHERE id=?",
+    );
+    final insert = _db.prepare(
+      "INSERT INTO patron_history (last_updated, id_patron, fileName, artist, title, count, json) VALUES (?,?,?,?,?,?,?,?)",
+    );
+    final update = _db.prepare(
+      "UPDATE patron_history set last_updated=?, id_patron=?, fileName=?, artist=?, title=?, count=?, json=? WHERE id=?",
+    );
+
+    try {
+      _db.execute('BEGIN TRANSACTION');
+      for (final item in history) {
+        item.idPatron = id!;
 
         if (item.status == .deleted) {
           if (item.id != null) {
-            deleteHist.execute([item.id]);
+            delete.execute([item.id]);
           }
         } else if (item.status == .updated) {
           if (item.id == null) {
-            insertHist.execute([
+            insert.execute([
               item.lastUpdated,
               item.idPatron,
               item.fileName,
@@ -174,7 +194,7 @@ class PatronDataAccess {
               item.json,
             ]);
           } else {
-            updateHist.execute([
+            update.execute([
               item.lastUpdated,
               item.idPatron,
               item.fileName,
@@ -192,13 +212,9 @@ class PatronDataAccess {
     } catch (e) {
       _db.execute('ROLLBACK');
     } finally {
-      deleteAllHist.close();
       delete.close();
       insert.close();
       update.close();
-      deleteHist.close();
-      insertHist.close();
-      updateHist.close();
     }
     return;
   }

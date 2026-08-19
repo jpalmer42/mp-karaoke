@@ -70,7 +70,119 @@ class BusinessDataAccess {
     return response;
   }
 
-  Future<void> publishBusiness(BusinessInfo payload) async {
+  Future<void> publishBusiness(List<BusinessInfo> payload) async {
+    final deleteAll = _db.prepare(
+      "DELETE FROM venues WHERE id_business=?",
+    );
+    final delete = _db.prepare(
+      "DELETE FROM businesses WHERE id=?",
+    );
+    final insert = _db.prepare(
+      "INSERT INTO businesses (last_updated, name, json ) VALUES (?,?,?)",
+    );
+    final update = _db.prepare(
+      "UPDATE businesses set last_updated=?, name=?, json=? WHERE id=?",
+    );
+
+    for (final item in payload) {
+      try {
+        _db.execute('BEGIN TRANSACTION');
+
+        if (item.status == .deleted) {
+          if (item.id != null) {
+            deleteAll.execute([item.id]);
+            delete.execute([item.id]);
+          }
+        } else if (item.status == .updated) {
+          if (item.id == null) {
+            insert.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.json,
+            ]);
+            item.id = _db.lastInsertRowId;
+          } else {
+            update.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.json,
+              item.id,
+            ]);
+          }
+        }
+
+        await publishVenues(item.id, item.venues, transactional: false);
+
+        _db.execute('COMMIT');
+      } catch (e) {
+        _db.execute('ROLLBACK');
+      } finally {
+        deleteAll.close();
+        delete.close();
+        insert.close();
+        update.close();
+      }
+    }
+
+    return;
+  }
+
+  Future<void> publishVenues(int? id, List<VenueInfo>? payload, {bool transactional = true}) async {
+    if (id == null || payload == null) return;
+
+    final delete = _db.prepare(
+      "DELETE FROM venues WHERE id=?",
+    );
+    final insert = _db.prepare(
+      "INSERT INTO venues (last_updated, name, latitude, longitude, json ) VALUES (?,?,?)",
+    );
+    final update = _db.prepare(
+      "UPDATE venues set last_updated=?, name=?, latitude=?, longitude=?, json=? WHERE id=?",
+    );
+
+    try {
+      if (transactional) {
+        _db.execute('BEGIN TRANSACTION');
+      }
+      for (final item in payload) {
+        if (item.status == .deleted) {
+          if (item.id != null) {
+            delete.execute([item.id]);
+          }
+        } else if (item.status == .updated) {
+          if (item.id == null) {
+            insert.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.latitude,
+              item.longitude,
+              item.json,
+            ]);
+          } else {
+            update.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.latitude,
+              item.longitude,
+              item.json,
+              item.id,
+            ]);
+          }
+        }
+      }
+      if (transactional) {
+        _db.execute('COMMIT');
+      }
+    } catch (e) {
+      if (transactional) {
+        _db.execute('ROLLBACK');
+      }
+    } finally {
+      delete.close();
+      insert.close();
+      update.close();
+    }
+
     return;
   }
 }
