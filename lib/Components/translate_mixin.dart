@@ -4,7 +4,6 @@ mixin Translate {
   static Function(String value, {String? prefix, String? suffix})? _translate;
   String translate(String value, {String? prefix, String? suffix}) {
     if (_translate == null) {
-      // Do something to find the language
       final lang = AppConfig.instance.prefs.getString(AppConfig.spLanguage) ?? 'en';
       _translate = _defaultTranslator;
     }

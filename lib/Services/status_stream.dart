@@ -20,7 +20,7 @@ class StatusStream {
     }
 
     if (duration != null) {
-      Future.delayed(duration!, () {
+      Future.delayed(duration, () {
         _status.remove(statusInfo);
         _controller.sink.add(_status);
       });

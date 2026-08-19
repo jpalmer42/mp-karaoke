@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
