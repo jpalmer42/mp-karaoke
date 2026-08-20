@@ -45,15 +45,20 @@ class PatronDataAccess {
     return response;
   }
 
-  Future<PatronInfo?> fetchPatronById(int id) async {
+  Future<PatronInfo?> fetchPatronById({int? id}) async {
     PatronInfo? response;
+    var query = "id, last_updated, name, home_venue, date_added, date_last, json FROM patron";
+    if (id != null) {
+      query = '$query WHERE id=?';
+    }
 
-    final ResultSet patronResults = _db.select(
-      "id, last_updated, name, home_venue, date_added, date_last, json FROM patron WHERE id=?",
-      [id],
+    final ResultSet results = _db.select(
+      query,
+      id == null ? [] : [id],
     );
-    if (patronResults.isNotEmpty) {
-      final item = patronResults.first;
+
+    if (results.isNotEmpty) {
+      final item = results.first;
       final dateUpdatedStr = item.values[1];
       DateTime? dateUpdated = (dateUpdatedStr is String) ? DateTime.tryParse(dateUpdatedStr) : null;
 
@@ -99,7 +104,7 @@ class PatronDataAccess {
     return response;
   }
 
-  Future<void> publishPatron(PatronInfo patron) async {
+  Future<void> publishPatron(List<PatronInfo> payload) async {
     final delete = _db.prepare(
       "DELETE FROM patron_history WHERE id_patron=?;DELETE FROM patron WHERE id=?",
     );
@@ -113,49 +118,52 @@ class PatronDataAccess {
       "UPDATE patron set last_updated=?, name=?, home_venue=?, date_added=?, date_last=?, json=? FROM patron WHERE id=?",
     );
 
-    try {
-      _db.execute('BEGIN TRANSACTION');
+    for (final item in payload) {
+      try {
+        _db.execute('BEGIN TRANSACTION');
 
-      if (patron.status == .deleted) {
-        if (patron.id != null) {
-          deleteAllHist.execute([patron.id]);
-          delete.execute([patron.id]);
-          patron.history = [];
+        if (item.status == .deleted) {
+          if (item.id != null) {
+            deleteAllHist.execute([item.id]);
+            delete.execute([item.id]);
+            item.history = [];
+          }
+        } else if (item.status == .updated) {
+          item.lastUpdated = DateTime.now();
+          if (item.id == null) {
+            insert.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.homeVenue,
+              item.dateAdded?.toIso8601String(),
+              item.dateLast?.toIso8601String(),
+              item.json,
+            ]);
+            item.id = _db.lastInsertRowId;
+          } else {
+            update.execute([
+              item.lastUpdated?.toIso8601String(),
+              item.name,
+              item.homeVenue,
+              item.dateAdded?.toIso8601String(),
+              item.dateLast?.toIso8601String(),
+              item.json,
+              item.id,
+            ]);
+          }
         }
-      } else if (patron.status == .updated) {
-        if (patron.id == null) {
-          insert.execute([
-            patron.lastUpdated?.toIso8601String(),
-            patron.name,
-            patron.homeVenue,
-            patron.dateAdded?.toIso8601String(),
-            patron.dateLast?.toIso8601String(),
-            patron.json,
-          ]);
-          patron.id = _db.lastInsertRowId;
-        } else {
-          update.execute([
-            patron.lastUpdated?.toIso8601String(),
-            patron.name,
-            patron.homeVenue,
-            patron.dateAdded?.toIso8601String(),
-            patron.dateLast?.toIso8601String(),
-            patron.json,
-            patron.id,
-          ]);
-        }
+
+        await publishPatronHistory(item.id, item.history, transactional: false);
+
+        _db.execute('COMMIT');
+      } catch (e) {
+        _db.execute('ROLLBACK');
+      } finally {
+        deleteAllHist.close();
+        delete.close();
+        insert.close();
+        update.close();
       }
-
-      await publishPatronHistory(patron.id, patron.history, transactional: false);
-
-      _db.execute('COMMIT');
-    } catch (e) {
-      _db.execute('ROLLBACK');
-    } finally {
-      deleteAllHist.close();
-      delete.close();
-      insert.close();
-      update.close();
     }
     return;
   }
@@ -183,9 +191,10 @@ class PatronDataAccess {
             delete.execute([item.id]);
           }
         } else if (item.status == .updated) {
+          item.lastUpdated = DateTime.now();
           if (item.id == null) {
             insert.execute([
-              item.lastUpdated,
+              item.lastUpdated?.toIso8601String(),
               item.idPatron,
               item.fileName,
               item.artist,
@@ -195,7 +204,7 @@ class PatronDataAccess {
             ]);
           } else {
             update.execute([
-              item.lastUpdated,
+              item.lastUpdated?.toIso8601String(),
               item.idPatron,
               item.fileName,
               item.artist,

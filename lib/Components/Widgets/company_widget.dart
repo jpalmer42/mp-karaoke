@@ -61,7 +61,21 @@ class _CompanyWidgetState extends State<CompanyWidget> with Translate {
   }
 
   @override
-  void dispose() async {
+  void dispose() {
+    _tecCompanyName.dispose();
+
+    _tecCarouselPath.dispose();
+    _tecCarouselDuration.dispose();
+    super.dispose();
+  }
+
+  @override
+  void deactivate() async {
+    await _save();
+    super.deactivate();
+  }
+
+  Future<void> _save() async {
     _businessInfo.name = _tecCompanyName.text;
     var json = {
       "carouselImagePath": _tecCarouselPath.text,
@@ -71,12 +85,6 @@ class _CompanyWidgetState extends State<CompanyWidget> with Translate {
     _businessInfo.status = .updated;
 
     await BusinessDataAccess.instance.publishBusiness([_businessInfo]);
-
-    _tecCompanyName.dispose();
-
-    _tecCarouselPath.dispose();
-    _tecCarouselDuration.dispose();
-    super.dispose();
   }
 
   @override

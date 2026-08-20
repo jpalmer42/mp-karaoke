@@ -22,16 +22,21 @@ class BusinessDataAccess {
         "CREATE TABLE IF NOT EXISTS businesses (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
       ) //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, business_id INTEGER NOT NULL, last_updated TEXT, name TEXT, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, business_id INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT)",
       ) //
       ;
   }
 
-  Future<BusinessInfo> fetchBusiness() async {
+  Future<BusinessInfo> fetchBusiness({int? id}) async {
     BusinessInfo? response;
+    var query = "SELECT id, last_updated, name, json FROM businesses";
+    if (id != null) {
+      query = '$query WHERE id=?';
+    }
 
     final ResultSet results = _db.select(
-      "SELECT id, last_updated, name, json FROM businesses",
+      query,
+      id == null ? [] : [id],
     );
     if (results.isNotEmpty) {
       final result = results.first;
@@ -53,7 +58,10 @@ class BusinessDataAccess {
 
   Future<List<VenueInfo>> fetchVenuesByBuisnessId(int id) async {
     List<VenueInfo> response = [];
-    final results = _db.select("SELECT id, business_id, last_updated, name, json WHERE business_id=?", [id]);
+    final results = _db.select(
+      "SELECT id, business_id, last_updated, name, json FROM venues WHERE business_id=?",
+      [id],
+    );
     for (final result in results) {
       String? dateStr = result.values[2] as String?;
       DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
@@ -94,6 +102,7 @@ class BusinessDataAccess {
             delete.execute([item.id]);
           }
         } else if (item.status == .updated) {
+          item.lastUpdated = DateTime.now();
           if (item.id == null) {
             insert.execute([
               item.lastUpdated?.toIso8601String(),
@@ -128,13 +137,13 @@ class BusinessDataAccess {
   }
 
   Future<void> publishVenues(int? id, List<VenueInfo>? payload, {bool transactional = true}) async {
-    if (id == null || payload == null) return;
+    if (id == null || payload == null || payload.isEmpty) return;
 
     final delete = _db.prepare(
       "DELETE FROM venues WHERE id=?",
     );
     final insert = _db.prepare(
-      "INSERT INTO venues (last_updated, name, latitude, longitude, json ) VALUES (?,?,?)",
+      "INSERT INTO venues (last_updated, name, latitude, longitude, json ) VALUES (?,?,?,?,?)",
     );
     final update = _db.prepare(
       "UPDATE venues set last_updated=?, name=?, latitude=?, longitude=?, json=? WHERE id=?",
@@ -150,6 +159,7 @@ class BusinessDataAccess {
             delete.execute([item.id]);
           }
         } else if (item.status == .updated) {
+          item.lastUpdated = DateTime.now();
           if (item.id == null) {
             insert.execute([
               item.lastUpdated?.toIso8601String(),
