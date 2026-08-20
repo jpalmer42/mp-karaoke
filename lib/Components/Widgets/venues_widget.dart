@@ -54,9 +54,9 @@ class _VenuesWidgetState extends State<VenuesWidget> with Translate {
               return ListTile(
                 selected: index == selected,
                 selectedTileColor: Theme.of(context).colorScheme.onPrimary,
-                title: Text(item.name),
+                title: Text(item.name ?? ''),
                 titleTextStyle: Theme.of(context).textTheme.bodyLarge,
-                // subtitle: _subTitle(item),
+                subtitle: Text(item.city ?? ''),
                 subtitleTextStyle: Theme.of(context).textTheme.bodySmall,
                 leading: IconButton(
                   onPressed: () => _addEdit(index),
@@ -65,15 +65,6 @@ class _VenuesWidgetState extends State<VenuesWidget> with Translate {
                 trailing: Row(
                   mainAxisSize: .min,
                   children: [
-                    // if (item.monitor) Text(translate("Scan on Start")),
-                    // if (item.id != null)
-                    //   IconButton(
-                    //     tooltip: 'Scan Now!',
-                    //     icon: const Icon(Icons.refresh, color: Colors.green),
-                    //     onPressed: () {
-                    //       _scanFolder(item);
-                    //     },
-                    //   ),
                     IconButton(
                       tooltip: 'Remove',
                       icon: const Icon(Icons.delete, color: Colors.red),
@@ -138,12 +129,14 @@ class AddVenueDialog extends StatefulWidget {
 
 class _AddVenueDialogState extends State<AddVenueDialog> with Translate {
   late final TextEditingController _tecName;
+  late final TextEditingController _tecCity;
   late final VenueInfo _response;
 
   @override
   void initState() {
     _response = widget.venueInfo ?? VenueInfo(businessId: 1, name: "");
     _tecName = TextEditingController(text: widget.venueInfo?.name ?? '');
+    _tecCity = TextEditingController(text: widget.venueInfo?.city ?? '');
 
     super.initState();
   }
@@ -151,6 +144,7 @@ class _AddVenueDialogState extends State<AddVenueDialog> with Translate {
   @override
   void dispose() {
     _tecName.dispose();
+    _tecCity.dispose();
     super.dispose();
   }
 
@@ -178,6 +172,14 @@ class _AddVenueDialogState extends State<AddVenueDialog> with Translate {
             ),
           ),
           Constants.singleSpace,
+          TextField(
+            autofocus: true,
+            controller: _tecCity,
+            decoration: Constants.inputDecoration(
+              translate("City"),
+            ),
+          ),
+          Constants.singleSpace,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -187,6 +189,7 @@ class _AddVenueDialogState extends State<AddVenueDialog> with Translate {
                   _response
                     ..lastUpdated = DateTime.now()
                     ..name = _tecName.text
+                    ..city = _tecCity.text
                     ..status = .updated;
 
                   Navigator.pop(context, _response);

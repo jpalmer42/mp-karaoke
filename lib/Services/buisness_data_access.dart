@@ -17,14 +17,13 @@ class BusinessDataAccess {
   }
 
   void _createTables() {
-    _db //
+    _db
       ..execute(
         "CREATE TABLE IF NOT EXISTS businesses (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
-      ) //
+      )
       ..execute(
-        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, id_business INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT)",
-      ) //
-      ;
+        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, id_business INTEGER NOT NULL, last_updated TEXT, name TEXT, city TEXT, json TEXT)",
+      );
   }
 
   Future<BusinessInfo> fetchBusiness({int? id}) async {
@@ -59,7 +58,7 @@ class BusinessDataAccess {
   Future<List<VenueInfo>> fetchVenuesByBuisnessId(int? id) async {
     List<VenueInfo> response = [];
 
-    var query = "SELECT id, id_business, last_updated, name, json FROM venues";
+    var query = "SELECT id, id_business, last_updated, name, city, json FROM venues";
     if (id != null) {
       query = '$query WHERE id=?';
     }
@@ -71,13 +70,15 @@ class BusinessDataAccess {
     for (final result in results) {
       String? dateStr = result.values[2] as String?;
       DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+
       response.add(
         VenueInfo(
           id: result.values[0] as int,
           businessId: result.values[1] as int,
           lastUpdated: date,
           name: result.values[3] as String,
-          json: result.values[4] as String?,
+          city: result.values[4] as String?,
+          json: result.values[5] as String?,
         ),
       );
     }
@@ -149,18 +150,18 @@ class BusinessDataAccess {
     final delete = _db.prepare(
       "DELETE FROM venues WHERE id=?",
     );
-    // id INTEGER NOT NULL PRIMARY KEY, id_business INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT
     final insert = _db.prepare(
-      "INSERT INTO venues (id_business, last_updated, name, latitude, longitude, json ) VALUES (?,?,?,?,?,?)",
+      "INSERT INTO venues (id_business, last_updated, name, city, json ) VALUES (?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE venues set id_business=?, last_updated=?, name=?, latitude=?, longitude=?, json=? WHERE id=?",
+      "UPDATE venues set id_business=?, last_updated=?, name=?, city=?, json=? WHERE id=?",
     );
 
     try {
       if (transactional) {
         _db.execute('BEGIN TRANSACTION');
       }
+
       for (final item in payload) {
         if (item.status == .deleted) {
           if (item.id != null) {
@@ -168,13 +169,13 @@ class BusinessDataAccess {
           }
         } else if (item.status == .updated) {
           item.lastUpdated = DateTime.now();
+
           if (item.id == null) {
             insert.execute([
               item.businessId,
               item.lastUpdated?.toIso8601String(),
               item.name,
-              item.latitude,
-              item.longitude,
+              item.city,
               item.json,
             ]);
           } else {
@@ -182,14 +183,14 @@ class BusinessDataAccess {
               item.businessId,
               item.lastUpdated?.toIso8601String(),
               item.name,
-              item.latitude,
-              item.longitude,
+              item.city,
               item.json,
               item.id,
             ]);
           }
         }
       }
+
       if (transactional) {
         _db.execute('COMMIT');
       }

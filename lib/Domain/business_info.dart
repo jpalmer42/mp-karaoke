@@ -12,12 +12,18 @@ class BusinessInfo extends BaseInfo {
 
 class VenueInfo extends BaseInfo {
   int? id;
-  int businessId;
+  int? businessId;
   DateTime? lastUpdated;
-  String name;
+  String? name;
+  String? city;
   String? json;
-  double? latitude;
-  double? longitude;
 
-  VenueInfo({this.id, required this.businessId, this.lastUpdated, required this.name, this.json, this.latitude, this.longitude});
+  VenueInfo({
+    this.id,
+    this.businessId,
+    this.lastUpdated,
+    this.name,
+    this.city,
+    this.json,
+  });
 }
