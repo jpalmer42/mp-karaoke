@@ -45,8 +45,8 @@ class PatronDataAccess {
     return response;
   }
 
-  Future<PatronInfo?> fetchPatronById({int? id}) async {
-    PatronInfo? response;
+  Future<List<PatronInfo>> fetchPatronById({int? id}) async {
+    List<PatronInfo> response = [];
     var query = "id, last_updated, name, home_venue, date_added, date_last, json FROM patron";
     if (id != null) {
       query = '$query WHERE id=?';
@@ -57,8 +57,7 @@ class PatronDataAccess {
       id == null ? [] : [id],
     );
 
-    if (results.isNotEmpty) {
-      final item = results.first;
+    for (final item in results) {
       final dateUpdatedStr = item.values[1];
       DateTime? dateUpdated = (dateUpdatedStr is String) ? DateTime.tryParse(dateUpdatedStr) : null;
 
@@ -68,37 +67,46 @@ class PatronDataAccess {
       final dateLastStr = item.values[5];
       DateTime? dateLast = (dateLastStr is String) ? DateTime.tryParse(dateLastStr) : null;
 
-      response = PatronInfo(
-        id: item.values[0] as int,
-        lastUpdated: dateUpdated,
-        name: item.values[1] as String,
-        homeVenue: item.values[2] as String,
-        dateAdded: dateAdded,
-        dateLast: dateLast,
-        json: item.values[6] as String,
+      response.add(
+        PatronInfo(
+          id: item.values[0] as int,
+          lastUpdated: dateUpdated,
+          name: item.values[1] as String,
+          homeVenue: item.values[2] as String,
+          dateAdded: dateAdded,
+          dateLast: dateLast,
+          json: item.values[6] as String,
+        ),
       );
-
-      List<PatronHistoryInfo> history = [];
-      final ResultSet historyResults = _db.select(
-        "SELECT id, last_updated, id_patron, fileName, artist, title, count, json FROM patron_history WHERE id_patron=?",
-        [id],
-      );
-      for (final item in historyResults) {
-        final dateStr = item.values[1];
-        DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
-        history.add(
-          PatronHistoryInfo(
-            id: item.values[0] as int,
-            lastUpdated: date,
-            idPatron: item.values[2] as int,
-            fileName: item.values[3] as String,
-            artist: item.values[4] as String?,
-            title: item.values[5] as String?,
-            count: item.values[6] as int,
-            json: item.values[7] as String?,
-          ),
-        );
+      if (id != null && response.isNotEmpty) {
+        response.first.history = await fetchHistory(id);
       }
+    }
+    return response;
+  }
+
+  Future<List<PatronHistoryInfo>> fetchHistory(int id) async {
+    List<PatronHistoryInfo> response = [];
+
+    final ResultSet results = _db.select(
+      "SELECT id, last_updated, id_patron, fileName, artist, title, count, json FROM patron_history WHERE id_patron=?",
+      [id],
+    );
+    for (final item in results) {
+      final dateStr = item.values[1];
+      DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+      response.add(
+        PatronHistoryInfo(
+          id: item.values[0] as int,
+          lastUpdated: date,
+          idPatron: item.values[2] as int,
+          fileName: item.values[3] as String,
+          artist: item.values[4] as String?,
+          title: item.values[5] as String?,
+          count: item.values[6] as int,
+          json: item.values[7] as String?,
+        ),
+      );
     }
 
     return response;
@@ -153,7 +161,7 @@ class PatronDataAccess {
           }
         }
 
-        await publishPatronHistory(item.id, item.history, transactional: false);
+        await publishHistory(item.id, item.history, transactional: false);
 
         _db.execute('COMMIT');
       } catch (e) {
@@ -168,7 +176,7 @@ class PatronDataAccess {
     return;
   }
 
-  Future<void> publishPatronHistory(int? id, List<PatronHistoryInfo>? history, {bool transactional = true}) async {
+  Future<void> publishHistory(int? id, List<PatronHistoryInfo>? history, {bool transactional = true}) async {
     if (id == null || history == null) return;
 
     final delete = _db.prepare(

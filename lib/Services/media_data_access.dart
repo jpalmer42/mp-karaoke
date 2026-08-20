@@ -19,9 +19,6 @@ class MediaDataAccess {
 
   void _createTables() {
     _db
-      // ..execute(
-      //   "CREATE TABLE IF NOT EXISTS key_bindings (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, function TEXT, option TEXT)",
-      // ) //
       ..execute(
         "CREATE TABLE IF NOT EXISTS media_folders (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, path TEXT, monitor TEXT, count INT, json TEXT)",
       ) //
@@ -31,12 +28,31 @@ class MediaDataAccess {
       ;
   }
 
+  Future<void> _rebuildFTS() async {
+    // final StatusInfo statusInfo = StatusInfo('Reindexing...');
+    // StatusStream.instance.setStatus(statusInfo, duration: Duration(seconds: 3));
+    _db //
+      ..execute(
+        "DROP TABLE IF EXISTS tracks_fts",
+      ) // F
+      ..execute(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS tracks_fts USING fts5 (id, code, artist, title, genres, tokenize='trigram' )",
+      ) //
+      ..execute(
+        "INSERT INTO tracks_fts (id, code, artist, title, genres) SELECT id, code, artist, title, genres FROM tracks;",
+      ) //
+      ;
+    // StatusStream.instance.setStatus(statusInfo);
+
+    return;
+  }
+
   Future<List<MediaFolderInfo>> fetchMediaFolders() async {
-    List<MediaFolderInfo> response = [];
-    ResultSet results = _db.select("SELECT id, path, monitor, last_updated, count, json FROM media_folders");
+    final List<MediaFolderInfo> response = [];
+    final ResultSet results = _db.select("SELECT id, path, monitor, last_updated, count, json FROM media_folders");
     for (var result in results) {
-      String? dateStr = result.values[3] as String?;
-      DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+      final String? dateStr = result.values[3] as String?;
+      final DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
 
       response.add(
         MediaFolderInfo(
@@ -96,6 +112,7 @@ class MediaDataAccess {
         }
       }
       _db.execute('COMMIT');
+      await _rebuildFTS();
     } catch (e) {
       _db.execute('ROLLBACK');
     } finally {
@@ -108,15 +125,44 @@ class MediaDataAccess {
     return;
   }
 
+  Future<List<TrackInfo>> searchTracks(String criteria) async {
+    final List<TrackInfo> response = [];
+    final ResultSet results = _db.select(
+      "SELECT t.id, t.last_updated, t.id_media_folder, t.path_name, t.code, t.artist, t.title, t.length, t.genres, t.rating, t.json FROM tracks t INNER JOIN tracks_fts tf ON (t.id = tf.id) WHERE tracks_fts match ?",
+      [criteria],
+    );
+    for (final result in results) {
+      final String? dateStr = result.values[1] as String?;
+      final DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+      response.add(
+        TrackInfo(
+          result.values[3] as String,
+          id: result.values[0] as int,
+          lastUpdated: date,
+          mediaFolderId: result.values[2] as int,
+          code: result.values[4] as String,
+          artist: result.values[5] as String,
+          title: result.values[6] as String,
+          length: result.values[7] as int,
+          genres: result.values[8] as String?,
+          rating: result.values[9] as int?,
+          json: result.values[10] as String?,
+        ),
+      );
+    }
+
+    return response;
+  }
+
   Future<List<TrackInfo>> fetchTracksById(int? id) async {
-    String query = "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres, json FROM tracks";
+    String query = "SELECT id, last_updated, id_media_folder, path_name, code, artist, title, length, genres, rating, json FROM tracks";
     if (id != null) query = "$query WHERE id_media_folder=?";
 
-    List<TrackInfo> response = [];
-    ResultSet results = _db.select(query, (id != null) ? [id] : []);
+    final List<TrackInfo> response = [];
+    final ResultSet results = _db.select(query, (id != null) ? [id] : []);
     for (var result in results) {
-      String? dateStr = result.values[1] as String?;
-      DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
+      final String? dateStr = result.values[1] as String?;
+      final DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
 
       response.add(
         TrackInfo(
@@ -129,7 +175,8 @@ class MediaDataAccess {
           title: result.values[6] as String,
           length: result.values[7] as int,
           genres: result.values[8] as String?,
-          json: result.values[9] as String?,
+          rating: result.values[9] as int?,
+          json: result.values[10] as String?,
         ),
       );
     }
@@ -188,6 +235,7 @@ class MediaDataAccess {
         }
       }
       _db.execute('COMMIT');
+      await _rebuildFTS();
     } catch (e) {
       _db.execute('ROLLBACK');
     } finally {
