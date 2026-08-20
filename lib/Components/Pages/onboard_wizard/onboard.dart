@@ -53,7 +53,9 @@ class _OnboardWizardState extends State<OnboardWizard> with Translate {
           actionsPadding: EdgeInsets.symmetric(horizontal: 8),
           actions: [
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil('mainUI', (_) => false);
+              },
               label: Text(translate("Skip")),
               icon: Icon(Icons.cancel, color: Colors.red),
             ),

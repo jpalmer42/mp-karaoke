@@ -122,7 +122,7 @@ class _AppWrapperState extends State<AppWrapper> with WindowListener {
                 WidgetBuilder builder;
                 switch (settings.name) {
                   case 'mainUI':
-                    builder = (BuildContext _) => const MainUIPage();
+                    builder = (BuildContext _) => const PreUI();
                     break;
                   case 'onboard':
                     builder = (BuildContext _) => const OnboardWizard();

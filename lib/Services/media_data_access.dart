@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:mp_karaoke_ui/Domain/media_folder_info.dart';
 import 'package:mp_karaoke_ui/Domain/track_info.dart';
+import 'package:mp_karaoke_ui/Services/folder_scan.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -82,6 +83,7 @@ class MediaDataAccess {
       "UPDATE media_folders set path=?, monitor=?, last_updated=?, count=?, json=?  WHERE id=?",
     );
 
+    bool delOrUpdate = false;
     try {
       _db.execute('BEGIN TRANSACTION');
       for (var item in folderInfo) {
@@ -89,6 +91,7 @@ class MediaDataAccess {
           if (item.id != null) {
             deleteAll.execute([item.id]);
             delete.execute([item.id]);
+            delOrUpdate = true;
           }
         } else if (item.status == .updated) {
           if (item.id == null) {
@@ -108,11 +111,14 @@ class MediaDataAccess {
               item.json,
               item.id,
             ]);
+            delOrUpdate = true;
           }
         }
       }
       _db.execute('COMMIT');
-      await _rebuildFTS();
+      if (delOrUpdate) {
+        await _rebuildFTS();
+      }
     } catch (e) {
       _db.execute('ROLLBACK');
     } finally {
@@ -244,5 +250,19 @@ class MediaDataAccess {
       update.close();
     }
     return;
+  }
+
+  Future<void> refreshMonitored() async {
+    final folders = await fetchMediaFolders();
+    bool rebuildFTS = false;
+    for (final item in folders) {
+      if (item.monitor == true) {
+        await FolderScan.instance.process(item);
+        rebuildFTS = true;
+      }
+    }
+    if (rebuildFTS) {
+      await _rebuildFTS();
+    }
   }
 }
