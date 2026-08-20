@@ -32,9 +32,9 @@ class _MediaFoldersWidgetState extends State<MediaFoldersWidget> with Translate 
   void _getData() {
     if (mounted) {
       MediaDataAccess.instance.fetchMediaFolders().then(
-        (folders) => setState(() {
+        (items) => setState(() {
           _items.clear();
-          _items.addAll(folders);
+          _items.addAll(items);
         }),
       );
     }
@@ -231,9 +231,10 @@ class _AddMediaFolderDialogState extends State<AddMediaFolderDialog> with Transl
               ElevatedButton(
                 onPressed: () {
                   _response
-                    ..lastUpdated = null
+                    ..lastUpdated = DateTime.now()
                     ..monitor = _monitored
-                    ..path = _tecFolder.text;
+                    ..path = _tecFolder.text
+                    ..status = .updated;
 
                   Navigator.pop(context, _response);
                 },

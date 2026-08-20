@@ -5,7 +5,7 @@ mixin Translate {
   String translate(String value, {String? prefix, String? suffix}) {
     if (_translate == null) {
       final lang = AppConfig.instance.prefs.getString(AppConfig.spLanguage) ?? 'en';
-      _translate = _defaultTranslator;
+      _translate = lang == 'en' ? _defaultTranslator : _defaultTranslator;
     }
 
     return _translate!(value, prefix: prefix, suffix: suffix);

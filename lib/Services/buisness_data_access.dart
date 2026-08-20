@@ -22,7 +22,7 @@ class BusinessDataAccess {
         "CREATE TABLE IF NOT EXISTS businesses (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, json TEXT)",
       ) //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, business_id INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS venues (id INTEGER NOT NULL PRIMARY KEY, id_business INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT)",
       ) //
       ;
   }
@@ -56,11 +56,17 @@ class BusinessDataAccess {
     return response ?? BusinessInfo(name: '');
   }
 
-  Future<List<VenueInfo>> fetchVenuesByBuisnessId(int id) async {
+  Future<List<VenueInfo>> fetchVenuesByBuisnessId(int? id) async {
     List<VenueInfo> response = [];
+
+    var query = "SELECT id, id_business, last_updated, name, json FROM venues";
+    if (id != null) {
+      query = '$query WHERE id=?';
+    }
+
     final results = _db.select(
-      "SELECT id, business_id, last_updated, name, json FROM venues WHERE business_id=?",
-      [id],
+      query,
+      id == null ? [] : [id],
     );
     for (final result in results) {
       String? dateStr = result.values[2] as String?;
@@ -80,7 +86,7 @@ class BusinessDataAccess {
 
   Future<void> publishBusiness(List<BusinessInfo> payload) async {
     final deleteAll = _db.prepare(
-      "DELETE FROM venues WHERE business_id=?",
+      "DELETE FROM venues WHERE id_business=?",
     );
     final delete = _db.prepare(
       "DELETE FROM businesses WHERE id=?",
@@ -125,6 +131,7 @@ class BusinessDataAccess {
         _db.execute('COMMIT');
       } catch (e) {
         _db.execute('ROLLBACK');
+        rethrow;
       } finally {
         deleteAll.close();
         delete.close();
@@ -142,11 +149,12 @@ class BusinessDataAccess {
     final delete = _db.prepare(
       "DELETE FROM venues WHERE id=?",
     );
+    // id INTEGER NOT NULL PRIMARY KEY, id_business INTEGER NOT NULL, last_updated TEXT, name TEXT, latitude REAL, longitude REAL, json TEXT
     final insert = _db.prepare(
-      "INSERT INTO venues (last_updated, name, latitude, longitude, json ) VALUES (?,?,?,?,?)",
+      "INSERT INTO venues (id_business, last_updated, name, latitude, longitude, json ) VALUES (?,?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE venues set last_updated=?, name=?, latitude=?, longitude=?, json=? WHERE id=?",
+      "UPDATE venues set id_business=?, last_updated=?, name=?, latitude=?, longitude=?, json=? WHERE id=?",
     );
 
     try {
@@ -162,6 +170,7 @@ class BusinessDataAccess {
           item.lastUpdated = DateTime.now();
           if (item.id == null) {
             insert.execute([
+              item.businessId,
               item.lastUpdated?.toIso8601String(),
               item.name,
               item.latitude,
@@ -170,6 +179,7 @@ class BusinessDataAccess {
             ]);
           } else {
             update.execute([
+              item.businessId,
               item.lastUpdated?.toIso8601String(),
               item.name,
               item.latitude,
@@ -187,6 +197,7 @@ class BusinessDataAccess {
       if (transactional) {
         _db.execute('ROLLBACK');
       }
+      rethrow;
     } finally {
       delete.close();
       insert.close();

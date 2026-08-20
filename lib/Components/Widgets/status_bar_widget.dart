@@ -22,13 +22,11 @@ class _StatusBarWidgetState extends State<StatusBarWidget> with Translate {
       child: StreamBuilder(
         stream: StatusStream.instance.stream,
         builder: (context, state) {
-          print('Status: ${state.data}');
           final items = state.data ?? [];
           return Row(
             children: [
               ...List.generate(items.length, (index) {
                 final item = items[index];
-                print(item);
                 return Container(
                   margin: .fromLTRB(0, 0, 4, 0),
                   padding: .fromLTRB(10, 4, 10, 6),
