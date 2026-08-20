@@ -22,7 +22,7 @@ class PreUI extends StatelessWidget {
   }
 
   Future<Object> _preload() async {
-    // await MediaDataAccess.instance.refreshMonitored();
+    await MediaDataAccess.instance.refreshMonitored();
 
     // Load venue info
     // Load singers

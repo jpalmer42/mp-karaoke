@@ -17,6 +17,8 @@ class FolderScan {
   final List<MediaFolderInfo> _stack = [];
 
   Future<bool> process(MediaFolderInfo info) async {
+    bool changed = false;
+
     if (_stack.any((item) => item.id == info.id)) {
       return false;
     }
@@ -29,20 +31,19 @@ class FolderScan {
       final RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
       final List<TrackInfo>? response = await Isolate.run<List<TrackInfo>?>(() => _isoFunc(info, rootIsolateToken));
       if (response != null) {
-        await MediaDataAccess.instance.publishTracks(info.id, response);
+        changed = await MediaDataAccess.instance.publishTracks(info.id, response);
 
         info.status = .updated;
         info.count = response.length;
         info.lastUpdated = DateTime.now();
         await MediaDataAccess.instance.publishMediaFolders([info]);
         StatusStream.instance.setStatus(status..text = 'Folder Sync Finshed', duration: Duration(seconds: 3));
-        return true;
       }
     } finally {
       _stack.remove(info);
     }
 
-    return false;
+    return changed;
   }
 
   static final RegExp typePattern = RegExp(r'(\.CDG|\.ZIP)$', caseSensitive: false);

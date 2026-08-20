@@ -189,7 +189,9 @@ class MediaDataAccess {
     return response;
   }
 
-  Future<void> publishTracks(int? id, List<TrackInfo> tracks) async {
+  Future<bool> publishTracks(int? id, List<TrackInfo> tracks) async {
+    bool changed = false;
+
     final delete = _db.prepare(
       "DELETE FROM tracks WHERE id=?",
     );
@@ -206,6 +208,7 @@ class MediaDataAccess {
         if (item.status == .deleted) {
           if (item.id != null) {
             delete.execute([item.id]);
+            changed = true;
           }
         } else if (item.status == .updated) {
           if (item.id == null) {
@@ -222,6 +225,7 @@ class MediaDataAccess {
               item.json,
               item.rating,
             ]);
+            changed = true;
           } else {
             update.execute([
               item.lastUpdated?.toIso8601String(),
@@ -237,11 +241,14 @@ class MediaDataAccess {
               item.json,
               item.id,
             ]);
+            changed = true;
           }
         }
       }
       _db.execute('COMMIT');
-      await _rebuildFTS();
+      if (changed) {
+        await _rebuildFTS();
+      }
     } catch (e) {
       _db.execute('ROLLBACK');
     } finally {
@@ -249,20 +256,20 @@ class MediaDataAccess {
       insert.close();
       update.close();
     }
-    return;
+    return changed;
   }
 
-  Future<void> refreshMonitored() async {
+  Future<bool> refreshMonitored() async {
     final folders = await fetchMediaFolders();
     bool rebuildFTS = false;
     for (final item in folders) {
       if (item.monitor == true) {
-        await FolderScan.instance.process(item);
-        rebuildFTS = true;
+        if (await FolderScan.instance.process(item)) {
+          rebuildFTS = true;
+        }
       }
     }
-    if (rebuildFTS) {
-      await _rebuildFTS();
-    }
+
+    return rebuildFTS;
   }
 }
