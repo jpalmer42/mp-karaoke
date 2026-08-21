@@ -99,6 +99,7 @@ class _CompanyWidgetState extends State<CompanyWidget> with Translate {
               Expanded(
                 flex: 2,
                 child: TextField(
+                  autofocus: true,
                   textCapitalization: TextCapitalization.words,
                   controller: _tecCompanyName,
                   decoration: Constants.inputDecoration(translate("Company Name")),

@@ -15,15 +15,7 @@ class _RosterListWidgetState extends State<RosterListWidget> {
 
   @override
   void initState() {
-    _roster.add(RosterItem('Jeff'));
-    _roster.add(RosterItem('Rob'));
-    _roster.add(RosterItem('Bob'));
-    _roster.add(RosterItem('Tracy'));
-    _roster.add(RosterItem('Shelly'));
-    _roster.add(RosterItem('Brando'));
-    _roster.add(RosterItem('StarrAnne'));
-    _roster.add(RosterItem('Safire'));
-
+    //todo: load Roster stream
     super.initState();
   }
 
@@ -74,7 +66,7 @@ class _RosterListWidgetState extends State<RosterListWidget> {
                   key: ValueKey(item),
                   index: index,
                   child: ListTile(
-                    title: Text(item.singerName),
+                    title: Text(item.patron.name),
                     trailing: Text('count'),
                   ),
                 );

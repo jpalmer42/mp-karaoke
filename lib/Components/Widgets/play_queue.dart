@@ -16,10 +16,7 @@ class _PlayQueueWidgetState extends State<PlayQueueWidget> {
 
   @override
   void initState() {
-    _queue.add(PlayQueueItem(RosterItem('jeff')));
-    _queue.add(PlayQueueItem(RosterItem('bob')));
-    _queue.add(PlayQueueItem(RosterItem('killer')));
-
+    //todo: load playQueue Stream
     super.initState();
   }
 
@@ -71,7 +68,7 @@ class _PlayQueueWidgetState extends State<PlayQueueWidget> {
                   index: index,
                   child: ListTile(
                     leading: Text('3:54'), //${item.rosterItem.tracks.first.length}
-                    title: Text(item.rosterItem.singerName),
+                    title: Text(item.rosterItem.patron.name),
                     trailing: Text('count'),
                   ),
                 );
