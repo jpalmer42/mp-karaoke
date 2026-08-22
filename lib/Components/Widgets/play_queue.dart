@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Domain/play_queue_item.dart';
-import 'package:mp_karaoke_ui/Domain/roster_item.dart';
 
 class PlayQueueWidget extends StatefulWidget {
   const new({super.key});

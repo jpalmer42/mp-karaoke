@@ -6,5 +6,7 @@ class RosterItem extends BaseInfo {
   PatronInfo patron;
   List<TrackInfo> tracks = [];
 
-  RosterItem(this.patron);
+  RosterItem({required this.patron, List<TrackInfo>? tracks}) {
+    this.tracks = tracks ??= [];
+  }
 }

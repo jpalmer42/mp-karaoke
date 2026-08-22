@@ -22,17 +22,18 @@ class PatronDataAccess {
         "CREATE TABLE IF NOT EXISTS patron (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, name TEXT, alias TEXT, home_venue TEXT, date_added TEXT, date_last TEXT, json TEXT)",
       ) //
       ..execute(
-        "CREATE TABLE IF NOT EXISTS patron_history (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, id_patron INTEGER NOT NULL, fileName TEXT, artist TEXT, title TEXT, count INTEGER, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS patron_history (id INTEGER NOT NULL PRIMARY KEY, last_updated TEXT, id_patron INTEGER NOT NULL, id_track INTEGER NOT NULL, fileName TEXT, count INTEGER, json TEXT)",
       ) //
       ;
   }
 
   Future<List<PatronInfo>> searchPatronsByName(String criteria) async {
-    List<PatronInfo> response = [];
+    List<PatronInfo> response = [PatronInfo(name: criteria)];
 
-    final ResultSet results = _db.select("SELECT id, name, home_venue FROM patron WHERE name like ? COLLATE NOCASE or alias like ? COLLATE NOCASE", [
+    final ResultSet results = _db.select(
+      "SELECT id, name, home_venue FROM patron WHERE name like ? COLLATE NOCASE or alias like ? COLLATE NOCASE",
       ['%$criteria%', '%$criteria%'],
-    ]);
+    );
     for (final item in results) {
       response.add(
         PatronInfo(
@@ -89,7 +90,7 @@ class PatronDataAccess {
     List<PatronHistoryInfo> response = [];
 
     final ResultSet results = _db.select(
-      "SELECT id, last_updated, id_patron, fileName, artist, title, count, json FROM patron_history WHERE id_patron=?",
+      "SELECT id, last_updated, id_patron, id_track, fileName, count, json FROM patron_history WHERE id_patron=?",
       [id],
     );
     for (final item in results) {
@@ -100,11 +101,10 @@ class PatronDataAccess {
           id: item.values[0] as int,
           lastUpdated: date,
           idPatron: item.values[2] as int,
-          fileName: item.values[3] as String,
-          artist: item.values[4] as String?,
-          title: item.values[5] as String?,
-          count: item.values[6] as int,
-          json: item.values[7] as String?,
+          idTrack: item.values[3] as int,
+          fileName: item.values[4] as String,
+          count: item.values[5] as int,
+          json: item.values[6] as String?,
         ),
       );
     }
@@ -123,7 +123,7 @@ class PatronDataAccess {
       "INSERT INTO patron (last_updated, name, home_venue, date_added, date_last, json) VALUES (?,?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE patron set last_updated=?, name=?, home_venue=?, date_added=?, date_last=?, json=? FROM patron WHERE id=?",
+      "UPDATE patron SET last_updated=?, name=?, home_venue=?, date_added=?, date_last=?, json=? WHERE id=?",
     );
 
     for (final item in payload) {
@@ -183,14 +183,16 @@ class PatronDataAccess {
       "DELETE FROM patron_history WHERE id=?",
     );
     final insert = _db.prepare(
-      "INSERT INTO patron_history (last_updated, id_patron, fileName, artist, title, count, json) VALUES (?,?,?,?,?,?,?,?)",
+      "INSERT INTO patron_history (last_updated, id_patron, id_track, fileName, count, json) VALUES (?,?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE patron_history set last_updated=?, id_patron=?, fileName=?, artist=?, title=?, count=?, json=? WHERE id=?",
+      "UPDATE patron_history SET last_updated=?, id_patron=?, id_track=?, fileName=?, count=?, json=? WHERE id=?",
     );
 
     try {
-      _db.execute('BEGIN TRANSACTION');
+      if (transactional) {
+        _db.execute('BEGIN TRANSACTION');
+      }
       for (final item in history) {
         item.idPatron = id;
 
@@ -204,9 +206,8 @@ class PatronDataAccess {
             insert.execute([
               item.lastUpdated?.toIso8601String(),
               item.idPatron,
+              item.idTrack,
               item.fileName,
-              item.artist,
-              item.title,
               item.count,
               item.json,
             ]);
@@ -214,9 +215,8 @@ class PatronDataAccess {
             update.execute([
               item.lastUpdated?.toIso8601String(),
               item.idPatron,
+              item.idTrack,
               item.fileName,
-              item.artist,
-              item.title,
               item.count,
               item.json,
               item.id,
@@ -224,10 +224,13 @@ class PatronDataAccess {
           }
         }
       }
-
-      _db.execute('COMMIT');
+      if (transactional) {
+        _db.execute('COMMIT');
+      }
     } catch (e) {
-      _db.execute('ROLLBACK');
+      if (transactional) {
+        _db.execute('ROLLBACK');
+      }
     } finally {
       delete.close();
       insert.close();

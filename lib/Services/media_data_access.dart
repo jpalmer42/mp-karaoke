@@ -80,7 +80,7 @@ class MediaDataAccess {
       "INSERT INTO media_folders (path, monitor, last_updated, count, json ) VALUES (?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE media_folders set path=?, monitor=?, last_updated=?, count=?, json=?  WHERE id=?",
+      "UPDATE media_folders SET path=?, monitor=?, last_updated=?, count=?, json=?  WHERE id=?",
     );
 
     bool delOrUpdate = false;
@@ -199,7 +199,7 @@ class MediaDataAccess {
       "INSERT INTO tracks (last_updated, id_media_folder, path_name, file_name, code, artist, title, length, genres, rating, json) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE tracks set last_updated=?, id_media_folder=?, path_name=?, file_name=?, code=?, artist=?, title=?, length=?, genres=?, rating=?, json=? WHERE id=?",
+      "UPDATE tracks SET last_updated=?, id_media_folder=?, path_name=?, file_name=?, code=?, artist=?, title=?, length=?, genres=?, rating=?, json=? WHERE id=?",
     );
 
     try {

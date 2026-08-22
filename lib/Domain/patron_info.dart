@@ -9,22 +9,37 @@ class PatronInfo extends BaseInfo {
   DateTime? dateLast;
   String? json;
 
-  List<PatronHistoryInfo>? history = [];
+  List<PatronHistoryInfo> history = [];
+  List<PatronHistoryInfo> get currentHistory {
+    return [];
+  }
 
-  PatronInfo({required this.name, this.id, this.lastUpdated, this.homeVenue, this.json, this.history, this.dateAdded, this.dateLast});
+  PatronInfo({required this.name, this.id, this.lastUpdated, this.homeVenue, this.json, List<PatronHistoryInfo>? history, this.dateAdded, this.dateLast}) {
+    this.history = history ?? [];
+  }
 }
 
 class PatronHistoryInfo extends BaseInfo {
   int? id;
   DateTime? lastUpdated;
-  int idPatron;
-  String fileName;
-  String? artist;
-  String? title;
-  String? json;
-  int? count;
 
-  PatronHistoryInfo({required this.idPatron, required this.fileName, this.id, this.lastUpdated, this.artist, this.title, this.json, this.count}) {
-    count ??= 0;
+  int idPatron;
+  int idTrack;
+  String fileName;
+  String? json;
+  int count = 0;
+
+  PatronHistoryInfo({
+    this.id,
+    this.lastUpdated,
+
+    required this.idPatron,
+    required this.idTrack,
+    required this.fileName,
+
+    this.json,
+    int? count,
+  }) {
+    this.count = count ?? 0;
   }
 }

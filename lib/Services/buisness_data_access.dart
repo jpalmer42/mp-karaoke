@@ -96,7 +96,7 @@ class BusinessDataAccess {
       "INSERT INTO businesses (last_updated, name, json ) VALUES (?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE businesses set last_updated=?, name=?, json=? WHERE id=?",
+      "UPDATE businesses SET last_updated=?, name=?, json=? WHERE id=?",
     );
 
     for (final item in payload) {
@@ -154,7 +154,7 @@ class BusinessDataAccess {
       "INSERT INTO venues (id_business, last_updated, name, city, json ) VALUES (?,?,?,?,?)",
     );
     final update = _db.prepare(
-      "UPDATE venues set id_business=?, last_updated=?, name=?, city=?, json=? WHERE id=?",
+      "UPDATE venues SET id_business=?, last_updated=?, name=?, city=?, json=? WHERE id=?",
     );
 
     try {
