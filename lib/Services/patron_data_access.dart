@@ -28,7 +28,7 @@ class PatronDataAccess {
   }
 
   Future<List<PatronInfo>> searchPatronsByName(String criteria) async {
-    List<PatronInfo> response = [PatronInfo(name: criteria)];
+    List<PatronInfo> response = [];
 
     final ResultSet results = _db.select(
       "SELECT id, name, home_venue FROM patron WHERE name like ? COLLATE NOCASE or alias like ? COLLATE NOCASE",

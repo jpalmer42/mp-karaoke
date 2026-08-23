@@ -26,8 +26,8 @@ class BusinessDataAccess {
       );
   }
 
-  Future<BusinessInfo> fetchBusiness({int? id}) async {
-    BusinessInfo? response;
+  Future<List<BusinessInfo>> fetchBusiness({int? id, bool fetchVenues = false}) async {
+    List<BusinessInfo> response = [];
     var query = "SELECT id, last_updated, name, json FROM businesses";
     if (id != null) {
       query = '$query WHERE id=?';
@@ -37,35 +37,42 @@ class BusinessDataAccess {
       query,
       id == null ? [] : [id],
     );
-    if (results.isNotEmpty) {
-      final result = results.first;
-
+    for (final result in results) {
       String? dateStr = result.values[1] as String?;
       DateTime? date = (dateStr is String) ? DateTime.tryParse(dateStr) : null;
 
-      response = BusinessInfo(
+      final business = BusinessInfo(
         id: result.values[0] as int,
         lastUpdated: date,
         name: result.values[2] as String,
         json: result.values[3] as String?,
       );
 
-      response.venues = await fetchVenuesByBuisnessId(response.id!);
+      business.venues = fetchVenues ? await fetchVenuesById(businessId: business.id!) : [];
+
+      response.add(business);
     }
-    return response ?? BusinessInfo(name: '');
+
+    if (response.isEmpty) {
+      response.add(BusinessInfo(name: '')..status = .updated);
+    }
+
+    return response;
   }
 
-  Future<List<VenueInfo>> fetchVenuesByBuisnessId(int? id) async {
+  Future<List<VenueInfo>> fetchVenuesById({int? id, int? businessId}) async {
     List<VenueInfo> response = [];
 
     var query = "SELECT id, id_business, last_updated, name, city, json FROM venues";
     if (id != null) {
       query = '$query WHERE id=?';
+    } else if (businessId != null) {
+      query = '$query WHERE id_business=?';
     }
 
     final results = _db.select(
       query,
-      id == null ? [] : [id],
+      (id == null && businessId == null) ? [] : [id ?? businessId], // Looks confusing but will pass the proper id based on null
     );
     for (final result in results) {
       String? dateStr = result.values[2] as String?;

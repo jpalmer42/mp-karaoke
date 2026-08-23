@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:mp_karaoke_ui/Domain/base.dart';
 
 class TrackInfo extends BaseInfo {
-  int? id;
   int? mediaFolderId;
   String pathName;
   String? fileName;
@@ -19,7 +18,7 @@ class TrackInfo extends BaseInfo {
 
   TrackInfo(
     this.pathName, {
-    this.id,
+    super.id,
     this.mediaFolderId,
     this.code,
     this.artist,

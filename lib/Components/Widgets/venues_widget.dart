@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/business_info.dart';
 import 'package:mp_karaoke_ui/Services/buisness_data_access.dart';
+import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class VenuesWidget extends StatefulWidget {
@@ -25,7 +26,7 @@ class _VenuesWidgetState extends State<VenuesWidget> with Translate {
   void _getData() {
     if (mounted) {
       BusinessDataAccess.instance
-          .fetchVenuesByBuisnessId(null)
+          .fetchVenuesById(businessId: AppConfig.instance.currentBusiness.id!)
           .then(
             (items) => setState(() {
               _items.clear();
@@ -92,7 +93,7 @@ class _VenuesWidgetState extends State<VenuesWidget> with Translate {
     showDialog<VenueInfo?>(
       context: context,
       builder: (context) => AddVenueDialog(venueInfo: item),
-    ).then((VenueInfo? response) {
+    ).then((VenueInfo? response) async {
       if (response != null) {
         response.status = .updated;
         setState(() {
@@ -102,19 +103,18 @@ class _VenuesWidgetState extends State<VenuesWidget> with Translate {
             _items.add(response);
           }
         });
-        _save();
+        await _save();
       }
     });
   }
 
-  void _save() {
+  Future<void> _save() async {
     setState(() => isDisabled = true);
-    BusinessDataAccess.instance.publishVenues(1, _items).then((_) {
-      _getData();
-      if (mounted) {
-        setState(() => isDisabled = false);
-      }
-    });
+    await BusinessDataAccess.instance.publishVenues(AppConfig.instance.currentBusiness.id!, _items);
+    _getData();
+    if (mounted) {
+      setState(() => isDisabled = false);
+    }
   }
 }
 

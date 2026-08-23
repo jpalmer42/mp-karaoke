@@ -1,7 +1,6 @@
 import 'package:mp_karaoke_ui/Domain/base.dart';
 
 class PatronInfo extends BaseInfo {
-  int? id;
   DateTime? lastUpdated;
   String name;
   String? homeVenue;
@@ -14,13 +13,12 @@ class PatronInfo extends BaseInfo {
     return [];
   }
 
-  PatronInfo({required this.name, this.id, this.lastUpdated, this.homeVenue, this.json, List<PatronHistoryInfo>? history, this.dateAdded, this.dateLast}) {
+  PatronInfo({required this.name, super.id, this.lastUpdated, this.homeVenue, this.json, List<PatronHistoryInfo>? history, this.dateAdded, this.dateLast}) {
     this.history = history ?? [];
   }
 }
 
 class PatronHistoryInfo extends BaseInfo {
-  int? id;
   DateTime? lastUpdated;
 
   int idPatron;
@@ -30,7 +28,7 @@ class PatronHistoryInfo extends BaseInfo {
   int count = 0;
 
   PatronHistoryInfo({
-    this.id,
+    super.id,
     this.lastUpdated,
 
     required this.idPatron,

@@ -1,14 +1,13 @@
 import 'package:mp_karaoke_ui/Domain/base.dart';
 
 class MediaFolderInfo extends BaseInfo {
-  int? id;
   String path;
   bool monitor;
   DateTime? lastUpdated;
   int? count;
   String? json;
 
-  MediaFolderInfo(this.path, {this.monitor = false, this.lastUpdated, this.count, this.id, this.json});
+  MediaFolderInfo({required this.path, this.monitor = false, this.lastUpdated, this.count, super.id, this.json});
 
   @override
   String toString() {

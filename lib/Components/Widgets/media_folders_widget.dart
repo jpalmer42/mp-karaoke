@@ -173,7 +173,7 @@ class _AddMediaFolderDialogState extends State<AddMediaFolderDialog> with Transl
 
   @override
   void initState() {
-    _response = widget.mediaFolderInfo ?? MediaFolderInfo("");
+    _response = widget.mediaFolderInfo ?? MediaFolderInfo(path: "");
 
     _tecFolder = TextEditingController(text: widget.mediaFolderInfo?.path ?? '');
     _monitored = widget.mediaFolderInfo?.monitor ?? false;

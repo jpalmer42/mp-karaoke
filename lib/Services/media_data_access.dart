@@ -57,12 +57,12 @@ class MediaDataAccess {
 
       response.add(
         MediaFolderInfo(
-          result.values[1] as String,
+          id: result.values[0] as int,
+          path: result.values[1] as String,
           monitor: (result.values[2] as String) == 'Y',
           lastUpdated: date,
           count: result.values[4] as int?,
           json: result.values[5] as String?,
-          id: result.values[0] as int,
         ),
       );
     }

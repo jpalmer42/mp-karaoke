@@ -45,6 +45,13 @@ class QueueStream {
     if (patron.id == null) {
       await PatronDataAccess.instance.publishPatron([patron..status = .updated]);
     }
+
+    if (_roster.any((item) {
+      return item.patron.id == patron.id;
+    })) {
+      return;
+    }
+
     _roster.add(RosterItem(patron: patron, tracks: tracks));
     _controllerRoster.sink.add(_roster);
     _backup();

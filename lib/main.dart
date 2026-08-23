@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/Pages/main_ui.dart';
-import 'package:mp_karaoke_ui/Components/Pages/onboard_wizard/onboard.dart';
+import 'package:mp_karaoke_ui/Components/onboard_wizard/onboard.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/status_bar_widget.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/theme.dart';

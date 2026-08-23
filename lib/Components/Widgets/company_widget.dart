@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/business_info.dart';
 import 'package:mp_karaoke_ui/Services/buisness_data_access.dart';
+import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class CompanyWidgetEntry extends StatelessWidget {
@@ -16,7 +17,7 @@ class CompanyWidgetEntry extends StatelessWidget {
       future: BusinessDataAccess.instance.fetchBusiness(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return CompanyWidget(businessInfo: snapshot.data);
+          return CompanyWidget(businessInfo: snapshot.data![0]);
         }
         return Constants.pleaseWait();
       },
@@ -85,6 +86,7 @@ class _CompanyWidgetState extends State<CompanyWidget> with Translate {
     _businessInfo.status = .updated;
 
     await BusinessDataAccess.instance.publishBusiness([_businessInfo]);
+    AppConfig.instance.currentBusiness = _businessInfo;
   }
 
   @override
