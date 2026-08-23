@@ -67,27 +67,27 @@ class _AddSingerDialogState extends State<AddSingerDialog> with Translate {
                 if (name.length < 3) return;
 
                 PatronInfo? response = PatronInfo(name: name, homeVenue: AppConfig.instance.currentVenue.nameCity);
-                // Navigator.pop(context, response);
+                Navigator.pop(context, response);
 
-                final nameLower = name.toLowerCase();
-                // Search results for same name
-                final matches = _items.where((item) {
-                  return item.name.toLowerCase().contains(nameLower);
-                });
+                // final nameLower = name.toLowerCase();
+                // // Search results for same name
+                // final matches = _items.where((item) {
+                //   return item.name.toLowerCase().contains(nameLower);
+                // });
 
-                if (matches.length == 1) {
-                  response = matches.first;
-                } else if (matches.length > 1) {
-                  final list = matches.toList();
-                  list.insert(0, PatronInfo(name: name, homeVenue: AppConfig.instance.currentVenue.nameCity));
-                  PatronConflict.showTheDialog(context, list).then((value) {
-                    if (context.mounted) {
-                      Navigator.pop(context, value);
-                    }
-                  });
-                } else {
-                  Navigator.pop(context, response);
-                }
+                // if (matches.length == 1) {
+                //   response = matches.first;
+                // } else if (matches.length > 1) {
+                //   final list = matches.toList();
+                //   list.insert(0, PatronInfo(name: name, homeVenue: AppConfig.instance.currentVenue.nameCity));
+                //   PatronConflict.showTheDialog(context, list).then((value) {
+                //     if (context.mounted) {
+                //       Navigator.pop(context, value);
+                //     }
+                //   });
+                // } else {
+                //   Navigator.pop(context, response);
+                // }
               },
               controller: _tecName,
               onChanged: (value) {
@@ -145,65 +145,65 @@ class _AddSingerDialogState extends State<AddSingerDialog> with Translate {
   }
 }
 
-class PatronConflict extends StatefulWidget {
-  final List<PatronInfo> patrons;
-  const new({super.key, required this.patrons});
+// class PatronConflict extends StatefulWidget {
+//   final List<PatronInfo> patrons;
+//   const new({super.key, required this.patrons});
 
-  static Future<PatronInfo?> showTheDialog(BuildContext context, List<PatronInfo> patrons) async {
-    return showDialog<PatronInfo?>(
-      context: context,
-      builder: (context) => PatronConflict(patrons: patrons),
-    );
-  }
+//   static Future<PatronInfo?> showTheDialog(BuildContext context, List<PatronInfo> patrons) async {
+//     return showDialog<PatronInfo?>(
+//       context: context,
+//       builder: (context) => PatronConflict(patrons: patrons),
+//     );
+//   }
 
-  @override
-  State<PatronConflict> createState() => _PatronConflictState();
-}
+//   @override
+//   State<PatronConflict> createState() => _PatronConflictState();
+// }
 
-class _PatronConflictState extends State<PatronConflict> with Translate {
-  @override
-  Widget build(BuildContext context) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-      child: SizedBox(
-        width: 500,
-        height: 500,
-        child: SimpleDialog(
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.onPrimary,
-          contentPadding: Constants.doublePadding,
-          alignment: Alignment.center,
-          title: Text(translate('Conflict')),
-          children: [
-            ...List.generate(
-              widget.patrons.length,
-              (index) {
-                final item = widget.patrons[index];
-                return ListTile(
-                  title: Text(item.name),
-                  subtitle: Text(item.homeVenue ?? ''),
-                  onTap: () {
-                    Navigator.pop(context, item);
-                  },
-                ) //
-                ;
-              },
-            ),
-            Constants.singleSpace,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class _PatronConflictState extends State<PatronConflict> with Translate {
+//   @override
+//   Widget build(BuildContext context) {
+//     return BackdropFilter(
+//       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+//       child: SizedBox(
+//         width: 500,
+//         height: 500,
+//         child: SimpleDialog(
+//           shape: RoundedRectangleBorder(
+//             side: BorderSide(
+//               color: Theme.of(context).colorScheme.onPrimaryContainer,
+//             ),
+//             borderRadius: BorderRadius.circular(15.0),
+//           ),
+//           backgroundColor: Theme.of(context).colorScheme.onPrimary,
+//           contentPadding: Constants.doublePadding,
+//           alignment: Alignment.center,
+//           title: Text(translate('Conflict')),
+//           children: [
+//             ...List.generate(
+//               widget.patrons.length,
+//               (index) {
+//                 final item = widget.patrons[index];
+//                 return ListTile(
+//                   title: Text(item.name),
+//                   subtitle: Text(item.homeVenue ?? ''),
+//                   onTap: () {
+//                     Navigator.pop(context, item);
+//                   },
+//                 ) //
+//                 ;
+//               },
+//             ),
+//             Constants.singleSpace,
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.end,
+//               children: [
+//                 OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

@@ -42,14 +42,10 @@ class QueueStream {
   final List<RosterItem> _roster = [];
 
   void addSinger(PatronInfo patron, {List<TrackInfo>? tracks}) async {
+    if (_roster.any((item) => item.patron == patron)) return;
+
     if (patron.id == null) {
       await PatronDataAccess.instance.publishPatron([patron..status = .updated]);
-    }
-
-    if (_roster.any((item) {
-      return item.patron.id == patron.id;
-    })) {
-      return;
     }
 
     _roster.add(RosterItem(patron: patron, tracks: tracks));

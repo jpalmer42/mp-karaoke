@@ -13,8 +13,17 @@ class PatronInfo extends BaseInfo {
     return [];
   }
 
+  String get nameHomeVenue => '$name - $homeVenue';
+
   PatronInfo({required this.name, super.id, this.lastUpdated, this.homeVenue, this.json, List<PatronHistoryInfo>? history, this.dateAdded, this.dateLast}) {
     this.history = history ?? [];
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is PatronInfo && other.id == id || (other is PatronInfo && other.nameHomeVenue == nameHomeVenue);
   }
 }
 
