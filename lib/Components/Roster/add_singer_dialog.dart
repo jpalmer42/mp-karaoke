@@ -128,76 +128,23 @@ class _AddSingerDialogState extends State<AddSingerDialog> with Translate {
                   } else {
                     _selectedPatron = value;
                   }
+                  Navigator.pop(context, _selectedPatron);
                 },
               ),
-              Constants.singleSpace,
-              SwitchListTile(
-                value: true,
-                onChanged: (bool value) {},
-                title: Text(translate("Randomize 10 Fav")),
-              ),
+              // Constants.singleSpace,
+              // SwitchListTile(
+              //   value: true,
+              //   onChanged: (bool value) {},
+              //   title: Text(translate("Randomize 10 Fav")),
+              // ),
             ],
           ),
         ),
         actions: [
           OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
-          ElevatedButton(onPressed: () => Navigator.pop(context, _selectedPatron), child: Text(translate('Okay'))),
+          // ElevatedButton(onPressed: () => Navigator.pop(context, _selectedPatron), child: Text(translate('Okay'))),
         ],
       ),
-
-      // SimpleDialog(
-      //   shape: RoundedRectangleBorder(
-      //     side: BorderSide(
-      //       color: Theme.of(context).colorScheme.onPrimaryContainer,
-      //     ),
-      //     borderRadius: BorderRadius.circular(15.0),
-      //   ),
-      //   backgroundColor: Theme.of(context).colorScheme.onPrimary,
-      //   contentPadding: Constants.doublePadding,
-      //   alignment: Alignment.center,
-      //   title: Text(translate('Add Singer')),
-      //   children: [
-      //     DropdownMenu<PatronInfo?>(
-      //       inputFormatters: [TitleCaseFormatter()],
-      //       // showTrailingIcon: false,
-      //       selectedTrailingIcon: IconButton(
-      //         onPressed: () {
-      //           setState(() {
-      //             _tecName.clear();
-      //             _items.clear();
-      //           });
-      //         },
-      //         icon: Icon(Icons.clear),
-      //       ),
-      //       // decorationBuilder: (context, controller) {},
-      //       width: width,
-      //       focusNode: _focusNode,
-      //       controller: _tecName,
-      //       dropdownMenuEntries: _items
-      //           .map(
-      //             (item) => DropdownMenuEntry(
-      //               value: item,
-      //               label: item.name,
-      //             ),
-      //           )
-      //           .toList(),
-      //       onSelected: (value) {
-      //         if (value == null) {
-      //           print(_tecName.text);
-      //         } else {
-      //           print(value.name);
-      //         }
-      //       },
-      //     ),
-      //     Constants.singleSpace,
-      //     Row(
-      //       mainAxisAlignment: MainAxisAlignment.end,
-      //       children: [
-      //         OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
-      //       ],
-      //     ),
-      //   ],
-      // ),
     );
   }
 }

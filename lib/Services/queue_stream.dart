@@ -87,4 +87,8 @@ class QueueStream {
   Future<void> _backup() async {
     //
   }
+
+  void refresh() {
+    _controllerRoster.sink.add(_roster);
+  }
 }

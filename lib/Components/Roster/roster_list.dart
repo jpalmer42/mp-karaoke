@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mp_karaoke_ui/Components/Roster/add_singer_dialog.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/roster_item.dart';
+import 'package:mp_karaoke_ui/Domain/track_info.dart';
 import 'package:mp_karaoke_ui/Services/queue_stream.dart';
 import 'package:mp_karaoke_ui/config.dart';
 
@@ -91,23 +92,41 @@ class _RosterListWidgetState extends State<RosterListWidget> with Translate {
             return ReorderableDragStartListener(
               key: ValueKey(item),
               index: index,
-              child: ListTile(
-                title: Badge(
-                  label: Text('${item.patron.id}'),
-                  child: Text(item.patron.name),
-                ),
-                subtitle: item.patron.homeVenue != AppConfig.instance.currentVenue.nameCity
-                    ? Text(
-                        item.patron.homeVenue ?? '',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      )
-                    : null,
-                trailing: Row(
-                  mainAxisSize: .min,
-                  children: [
-                    RawChip(label: Text('${item.patron.currentHistory.length} of ${item.tracks.length}'), tooltip: translate('Sung')),
-                  ],
-                ),
+              child: DragTarget<TrackInfo>(
+                onWillAcceptWithDetails: (details) {
+                  return true;
+                },
+                onAcceptWithDetails: (details) {
+                  setState(() {
+                    item.tracks.add(details.data);
+                    QueueStream.instance.refresh();
+                  });
+                },
+                builder: (BuildContext context, List<TrackInfo?> candidateData, List<dynamic> rejectedData) {
+                  final bool isHighlighted = candidateData.isNotEmpty;
+
+                  return Container(
+                    color: isHighlighted ? Theme.of(context).colorScheme.onSecondary.withValues(alpha: 03) : Colors.transparent,
+                    child: ListTile(
+                      title: Badge(
+                        label: Text('${item.patron.id}'),
+                        child: Text(item.patron.name),
+                      ),
+                      subtitle: item.patron.homeVenue != AppConfig.instance.currentVenue.nameCity
+                          ? Text(
+                              item.patron.homeVenue ?? '',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            )
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: .min,
+                        children: [
+                          RawChip(label: Text('${item.patron.currentHistory.length} of ${item.tracks.length}'), tooltip: translate('Sung')),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             );
           },

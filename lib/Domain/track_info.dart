@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:mp_karaoke_ui/Domain/base.dart';
+import 'package:mp_karaoke_ui/constants.dart';
 
 class TrackInfo extends BaseInfo {
   int? mediaFolderId;
@@ -58,6 +59,11 @@ class TrackInfo extends BaseInfo {
   }
 
   static final RegExp regExpKeepAlphaNumeric = RegExp(r'[^0-9a-z]');
+
+  String get lengthStr {
+    return Constants.formatDuration(length);
+  }
+
   String _makeSearchable(String? data) {
     return (data == null) ? '' : data.toLowerCase().replaceAll(regExpKeepAlphaNumeric, '');
   }

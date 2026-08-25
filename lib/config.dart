@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:mp_karaoke_ui/Domain/business_info.dart';
 import 'package:mp_karaoke_ui/Services/buisness_data_access.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,13 +40,16 @@ class AppConfig {
     _preferences.setInt(spVenueId, value.id!);
   }
 
+  late PackageInfo _packageInfo;
+  PackageInfo get packageInfo => _packageInfo;
+
   static Future<void> init() async {
     if (_instance != null) return;
 
     final config = AppConfig._();
     config._preferences = await SharedPreferences.getInstance();
     config._appSupportDir = await getApplicationSupportDirectory();
-
+    config._packageInfo = await PackageInfo.fromPlatform();
     _instance = config;
 
     config._getCurrentBusiness(config);

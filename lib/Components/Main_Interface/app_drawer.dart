@@ -16,6 +16,8 @@ class _AppDrawerState extends State<AppDrawer> with Translate {
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
+        // mainAxisAlignment: .spaceBetween,
+        crossAxisAlignment: .center,
         children: [
           ListTile(
             tileColor: Theme.of(context).colorScheme.onPrimary,
@@ -42,6 +44,12 @@ class _AppDrawerState extends State<AppDrawer> with Translate {
               });
             },
             // width: double.infinity,
+          ),
+          Spacer(),
+          Container(
+            padding: Constants.halfPadding,
+            alignment: .centerEnd,
+            child: Text('v${AppConfig.instance.packageInfo.version}'),
           ),
         ],
       ),
