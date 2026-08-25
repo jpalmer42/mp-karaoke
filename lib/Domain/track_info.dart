@@ -5,7 +5,7 @@ import 'package:mp_karaoke_ui/Domain/base.dart';
 class TrackInfo extends BaseInfo {
   int? mediaFolderId;
   String pathName;
-  String? fileName;
+  late String fileName;
   String? code;
   String? artist;
   String? title;
@@ -30,7 +30,8 @@ class TrackInfo extends BaseInfo {
     this.json,
   }) {
     fileName = pathName.substring(pathName.lastIndexOf(Platform.pathSeparator) + 1);
-    final parts = fileName!.split(" - ");
+    final fName = fileName.substring(0, fileName.lastIndexOf('.'));
+    final parts = fName.split(" - ");
     final len = parts.length;
     if (len == 2) {
       code ??= 'zzNoCode';
@@ -47,7 +48,7 @@ class TrackInfo extends BaseInfo {
     } else {
       code ??= 'zzNoCode';
       artist ??= 'zzFileFormat';
-      title ??= fileName;
+      title ??= fName;
     }
     lastUpdated ??= DateTime.now();
   }

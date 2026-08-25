@@ -3,11 +3,13 @@ import 'package:mp_karaoke_ui/Components/Main_Interface/app_drawer.dart';
 import 'package:mp_karaoke_ui/Components/Roster/add_singer_dialog.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/play_queue.dart';
 import 'package:mp_karaoke_ui/Components/Roster/roster_list.dart';
+import 'package:mp_karaoke_ui/Components/Widgets/song_search_widget.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Services/media_data_access.dart';
 import 'package:mp_karaoke_ui/Services/queue_stream.dart';
 import 'package:mp_karaoke_ui/config.dart';
 import 'package:mp_karaoke_ui/constants.dart';
+import 'package:resizable_splitter/resizable_splitter.dart';
 
 class PreUI extends StatelessWidget {
   const new({super.key});
@@ -44,6 +46,23 @@ class MainUIPage extends StatefulWidget with Translate {
 
 class _MainUIPageState extends State<MainUIPage> with Translate {
   final _focusNode = FocusNode();
+  late final SplitterController _scDynamicList;
+  late final SplitterController _scRosterList;
+
+  @override
+  void initState() {
+    _scDynamicList = SplitterController(initialPosition: SplitterPosition.fraction(.3));
+    _scRosterList = SplitterController(initialPosition: SplitterPosition.fraction(.5));
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scDynamicList.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return KeyboardListener(
@@ -66,40 +85,49 @@ class _MainUIPageState extends State<MainUIPage> with Translate {
               setState(() {});
             }
           },
-          body: Container(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    margin: EdgeInsets.all(4),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-                    child: Text('SongList'),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    margin: EdgeInsets.all(4),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-                    child: RosterListWidget(),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    margin: EdgeInsets.all(4),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-                    child: PlayQueueWidget(),
-                  ),
-                ),
-              ],
+          body: ResizableSplitter(
+            controller: _scDynamicList,
+            start: SongSearchWidget(),
+            end: ResizableSplitter(
+              controller: _scRosterList,
+              start: RosterListWidget(),
+              end: PlayQueueWidget(),
             ),
           ),
+          // Container(
+          //   padding: EdgeInsets.all(10),
+          //   child: Row(
+          //     children: [
+          //       Expanded(
+          //         child: Container(
+          //           width: double.infinity,
+          //           height: double.infinity,
+          //           margin: EdgeInsets.all(4),
+          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
+          //           child: Text('SongList'),
+          //         ),
+          //       ),
+          //       Expanded(
+          //         child: Container(
+          //           width: double.infinity,
+          //           height: double.infinity,
+          //           margin: EdgeInsets.all(4),
+          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
+          //           child: RosterListWidget(),
+          //         ),
+          //       ),
+          //       Expanded(
+          //         child: Container(
+          //           width: double.infinity,
+          //           height: double.infinity,
+          //           margin: EdgeInsets.all(4),
+          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
+          //           child: PlayQueueWidget(),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ),
       ),
     );

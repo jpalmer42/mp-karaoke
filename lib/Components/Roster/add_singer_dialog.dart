@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/patron_info.dart';
 import 'package:mp_karaoke_ui/Formatters/title_case_formatter.dart';
@@ -28,182 +29,175 @@ class _AddSingerDialogState extends State<AddSingerDialog> with Translate {
   @override
   void initState() {
     _tecName = TextEditingController(text: "");
+
+    _tecName.addListener(
+      () {
+        if (_tecName.text.length >= 3) {
+          PatronDataAccess.instance.searchPatronsByName(_tecName.text).then(
+            (value) {
+              setState(() {
+                _items = value;
+              });
+            },
+          );
+        } else if (_tecName.text.length < 3) {
+          setState(() {
+            _items.clear();
+          });
+        }
+      },
+    );
+
+    _focusNode.addListener(() {
+      print(_focusNode.hasFocus);
+    });
+
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_focusNode));
   }
 
   @override
   void dispose() {
     _tecName.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   List<PatronInfo> _items = [];
+  final FocusNode _focusNode = FocusNode();
+
+  PatronInfo? _selectedPatron;
+
   @override
   Widget build(BuildContext context) {
+    final double width = 300;
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-      child: SizedBox(
-        width: 500,
-        height: 500,
-        child: SimpleDialog(
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-            borderRadius: BorderRadius.circular(15.0),
+      child: AlertDialog(
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
           ),
-          backgroundColor: Theme.of(context).colorScheme.onPrimary,
-          contentPadding: Constants.doublePadding,
-          alignment: Alignment.center,
-          title: Text(translate('Add Singer')),
-          children: [
-            TextField(
-              inputFormatters: [TitleCaseFormatter()],
-              autofocus: true,
-              textCapitalization: .words,
-              keyboardType: .name,
-              onEditingComplete: () {
-                final name = _tecName.text.trim();
-                if (name.length < 3) return;
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
+        contentPadding: Constants.doublePadding,
+        // alignment: Alignment.center,
+        title: Text(translate('Add Singer')),
+        content: SizedBox(
+          width: width,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              DropdownMenu<PatronInfo?>(
+                controller: _tecName,
+                focusNode: _focusNode,
+                width: width,
+                // decorationBuilder: (context, controller) {},
+                enableSearch: true,
+                label: Text(translate("Search for Singer")),
+                textInputAction: .next,
+                inputFormatters: [TitleCaseFormatter()],
+                // showTrailingIcon: false,
+                // selectedTrailingIcon: IconButton(
+                //   onPressed: () {
+                //     setState(() {
+                //       _tecName.clear();
+                //       _items.clear();
+                //     });
+                //   },
+                //   icon: Icon(Icons.clear),
+                // ),
+                dropdownMenuEntries: _items
+                    .map(
+                      (item) => DropdownMenuEntry(
+                        value: item,
+                        label: item.name,
+                        labelWidget: ListTile(
+                          title: Text(item.name),
+                          subtitle: Text(item.homeVenue ?? ''),
+                        ),
+                      ),
+                    )
+                    .toList(),
 
-                PatronInfo? response = PatronInfo(name: name, homeVenue: AppConfig.instance.currentVenue.nameCity);
-                Navigator.pop(context, response);
-
-                // final nameLower = name.toLowerCase();
-                // // Search results for same name
-                // final matches = _items.where((item) {
-                //   return item.name.toLowerCase().contains(nameLower);
-                // });
-
-                // if (matches.length == 1) {
-                //   response = matches.first;
-                // } else if (matches.length > 1) {
-                //   final list = matches.toList();
-                //   list.insert(0, PatronInfo(name: name, homeVenue: AppConfig.instance.currentVenue.nameCity));
-                //   PatronConflict.showTheDialog(context, list).then((value) {
-                //     if (context.mounted) {
-                //       Navigator.pop(context, value);
-                //     }
-                //   });
-                // } else {
-                //   Navigator.pop(context, response);
-                // }
-              },
-              controller: _tecName,
-              onChanged: (value) {
-                if (value.trim().length >= 3) {
-                  PatronDataAccess.instance.searchPatronsByName(value).then((result) => setState(() => _items = result));
-                } else {
-                  setState(() {
-                    _items.clear();
-                  });
-                }
-              },
-              decoration: Constants.inputDecoration(
-                "Name",
-                suffix: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _items.clear();
-                      _tecName.clear();
-                    });
-                  },
-                  icon: Icon(Icons.clear),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 300,
-              width: 300,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  return ListTile(
-                    title: Text(item.name),
-                    subtitle: Text(item.homeVenue ?? ''),
-                    onTap: () {
-                      Navigator.pop(context, item);
-                    },
-                  );
+                onSelected: (value) {
+                  if (value == null) {
+                    _selectedPatron = PatronInfo(name: _tecName.text, homeVenue: AppConfig.instance.currentVenue.nameCity);
+                  } else {
+                    _selectedPatron = value;
+                  }
                 },
               ),
-            ),
-
-            Constants.singleSpace,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
-              ],
-            ),
-          ],
+              Constants.singleSpace,
+              SwitchListTile(
+                value: true,
+                onChanged: (bool value) {},
+                title: Text(translate("Randomize 10 Fav")),
+              ),
+            ],
+          ),
         ),
+        actions: [
+          OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
+          ElevatedButton(onPressed: () => Navigator.pop(context, _selectedPatron), child: Text(translate('Okay'))),
+        ],
       ),
+
+      // SimpleDialog(
+      //   shape: RoundedRectangleBorder(
+      //     side: BorderSide(
+      //       color: Theme.of(context).colorScheme.onPrimaryContainer,
+      //     ),
+      //     borderRadius: BorderRadius.circular(15.0),
+      //   ),
+      //   backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      //   contentPadding: Constants.doublePadding,
+      //   alignment: Alignment.center,
+      //   title: Text(translate('Add Singer')),
+      //   children: [
+      //     DropdownMenu<PatronInfo?>(
+      //       inputFormatters: [TitleCaseFormatter()],
+      //       // showTrailingIcon: false,
+      //       selectedTrailingIcon: IconButton(
+      //         onPressed: () {
+      //           setState(() {
+      //             _tecName.clear();
+      //             _items.clear();
+      //           });
+      //         },
+      //         icon: Icon(Icons.clear),
+      //       ),
+      //       // decorationBuilder: (context, controller) {},
+      //       width: width,
+      //       focusNode: _focusNode,
+      //       controller: _tecName,
+      //       dropdownMenuEntries: _items
+      //           .map(
+      //             (item) => DropdownMenuEntry(
+      //               value: item,
+      //               label: item.name,
+      //             ),
+      //           )
+      //           .toList(),
+      //       onSelected: (value) {
+      //         if (value == null) {
+      //           print(_tecName.text);
+      //         } else {
+      //           print(value.name);
+      //         }
+      //       },
+      //     ),
+      //     Constants.singleSpace,
+      //     Row(
+      //       mainAxisAlignment: MainAxisAlignment.end,
+      //       children: [
+      //         OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
+      //       ],
+      //     ),
+      //   ],
+      // ),
     );
   }
 }
-
-// class PatronConflict extends StatefulWidget {
-//   final List<PatronInfo> patrons;
-//   const new({super.key, required this.patrons});
-
-//   static Future<PatronInfo?> showTheDialog(BuildContext context, List<PatronInfo> patrons) async {
-//     return showDialog<PatronInfo?>(
-//       context: context,
-//       builder: (context) => PatronConflict(patrons: patrons),
-//     );
-//   }
-
-//   @override
-//   State<PatronConflict> createState() => _PatronConflictState();
-// }
-
-// class _PatronConflictState extends State<PatronConflict> with Translate {
-//   @override
-//   Widget build(BuildContext context) {
-//     return BackdropFilter(
-//       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-//       child: SizedBox(
-//         width: 500,
-//         height: 500,
-//         child: SimpleDialog(
-//           shape: RoundedRectangleBorder(
-//             side: BorderSide(
-//               color: Theme.of(context).colorScheme.onPrimaryContainer,
-//             ),
-//             borderRadius: BorderRadius.circular(15.0),
-//           ),
-//           backgroundColor: Theme.of(context).colorScheme.onPrimary,
-//           contentPadding: Constants.doublePadding,
-//           alignment: Alignment.center,
-//           title: Text(translate('Conflict')),
-//           children: [
-//             ...List.generate(
-//               widget.patrons.length,
-//               (index) {
-//                 final item = widget.patrons[index];
-//                 return ListTile(
-//                   title: Text(item.name),
-//                   subtitle: Text(item.homeVenue ?? ''),
-//                   onTap: () {
-//                     Navigator.pop(context, item);
-//                   },
-//                 ) //
-//                 ;
-//               },
-//             ),
-//             Constants.singleSpace,
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.end,
-//               children: [
-//                 OutlinedButton(onPressed: () => Navigator.pop(context, null), child: Text(translate('Cancel'))),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

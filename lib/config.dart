@@ -72,7 +72,7 @@ class AppConfig {
       config._currentBusiness = BusinessInfo(name: "Not Set");
     }
 
-    final int? venueId = config._preferences.getInt(spVenueId);
+    final int? venueId = config._preferences.getInt(spVenueId) ?? 1;
     if (venueId != null) {
       config._currentVenue = config._currentBusiness.venues!.firstWhere((venue) => venueId == venue.id, orElse: () => VenueInfo(name: "Not Set"));
     }
