@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
 import 'package:mp_karaoke_ui/Domain/patron_info.dart';
 import 'package:mp_karaoke_ui/Formatters/title_case_formatter.dart';
@@ -47,10 +46,6 @@ class _AddSingerDialogState extends State<AddSingerDialog> with Translate {
         }
       },
     );
-
-    _focusNode.addListener(() {
-      print(_focusNode.hasFocus);
-    });
 
     super.initState();
 

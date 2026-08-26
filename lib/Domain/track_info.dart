@@ -54,9 +54,9 @@ class TrackInfo extends BaseInfo {
     lastUpdated ??= DateTime.now();
   }
 
-  void makeSearchable() {
-    searchable = "|$_makeSearchable(artist)|$_makeSearchable(title)|$_makeSearchable(genres)|$_makeSearchable(code)";
-  }
+  // void makeSearchable() {
+  //   searchable = "|$_makeSearchable(artist)|$_makeSearchable(title)|$_makeSearchable(genres)|$_makeSearchable(code)";
+  // }
 
   static final RegExp regExpKeepAlphaNumeric = RegExp(r'[^0-9a-z]');
 
@@ -64,7 +64,16 @@ class TrackInfo extends BaseInfo {
     return Constants.formatDuration(length);
   }
 
-  String _makeSearchable(String? data) {
-    return (data == null) ? '' : data.toLowerCase().replaceAll(regExpKeepAlphaNumeric, '');
+  // String _makeSearchable(String? data) {
+  //   return (data == null) ? '' : data.toLowerCase().replaceAll(regExpKeepAlphaNumeric, '');
+  // }
+}
+
+class PlayQueueInfo extends BaseInfo {
+  late String singer;
+  TrackInfo track;
+
+  PlayQueueInfo({String? singer, required this.track}) {
+    this.singer = singer ?? 'None Assigned';
   }
 }

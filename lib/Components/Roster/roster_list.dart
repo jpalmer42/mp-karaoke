@@ -15,7 +15,7 @@ class RosterListWidget extends StatefulWidget {
 
 class _RosterListWidgetState extends State<RosterListWidget> with Translate {
   final ScrollController _scrollController = ScrollController();
-  Key rolvKey = GlobalKey();
+  // Key rolvKey = GlobalKey();
 
   @override
   void initState() {
@@ -30,13 +30,12 @@ class _RosterListWidgetState extends State<RosterListWidget> with Translate {
 
   @override
   Widget build(BuildContext context) {
-    // final List<RosterItem> _roster = [];
     return Column(
       children: [
         ListTile(
           tileColor: Theme.of(context).colorScheme.onPrimary,
           title: Text(
-            'Singers',
+            translate('Singers'),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
@@ -80,7 +79,7 @@ class _RosterListWidgetState extends State<RosterListWidget> with Translate {
         thickness: 8,
         child: ReorderableListView.builder(
           scrollController: _scrollController,
-          key: rolvKey,
+          // key: rolvKey,
           shrinkWrap: true,
           buildDefaultDragHandles: false,
           itemCount: roster.length,

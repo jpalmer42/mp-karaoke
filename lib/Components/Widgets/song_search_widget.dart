@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +9,8 @@ import 'package:mp_karaoke_ui/Services/media_data_access.dart';
 import 'package:mp_karaoke_ui/constants.dart';
 
 class SongSearchWidget extends StatefulWidget {
-  const new({super.key});
+  final FocusNode searchFocusNode;
+  const new({super.key, required this.searchFocusNode});
 
   @override
   State<SongSearchWidget> createState() => _SongSearchWidgetState();
@@ -112,6 +112,7 @@ class _SongSearchWidgetState extends State<SongSearchWidget> with Translate {
             ),
           ),
           TextField(
+            focusNode: widget.searchFocusNode,
             controller: _controller,
             decoration: Constants.inputDecoration(
               translate('Title/Artist/Code'),

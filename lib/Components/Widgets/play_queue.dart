@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mp_karaoke_ui/Domain/play_queue_item.dart';
+import 'package:mp_karaoke_ui/Components/translate_mixin.dart';
+import 'package:mp_karaoke_ui/Domain/track_info.dart';
+import 'package:mp_karaoke_ui/Services/queue_stream.dart';
 
 class PlayQueueWidget extends StatefulWidget {
   const new({super.key});
@@ -8,8 +10,7 @@ class PlayQueueWidget extends StatefulWidget {
   State<PlayQueueWidget> createState() => _PlayQueueWidgetState();
 }
 
-class _PlayQueueWidgetState extends State<PlayQueueWidget> {
-  final List<PlayQueueItem> _queue = [];
+class _PlayQueueWidgetState extends State<PlayQueueWidget> with Translate {
   final ScrollController _scrollController = ScrollController();
   Key rolvKey = GlobalKey();
 
@@ -29,53 +30,51 @@ class _PlayQueueWidgetState extends State<PlayQueueWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: Theme.of(context).colorScheme.onPrimary,
-          child: Text(
-            'Play Queue',
+        ListTile(
+          tileColor: Theme.of(context).colorScheme.onPrimary,
+          title: Text(
+            translate('Play Queue'),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-        Expanded(
-          child: Scrollbar(
-            controller: _scrollController,
-            thumbVisibility: true,
-            thickness: 8,
-            child: ReorderableListView.builder(
-              scrollController: _scrollController,
-              key: rolvKey,
-              shrinkWrap: true,
-              buildDefaultDragHandles: false,
-              itemCount: _queue.length,
-
-              onReorderItem: (oldIndex, newIndex) {
-                if (oldIndex < newIndex) newIndex++;
-                if (newIndex > oldIndex) newIndex--;
-                final item = _queue.removeAt(oldIndex);
-                _queue.insert(newIndex, item);
-              },
-
-              itemBuilder: (context, index) {
-                final item = _queue[index];
-                return ReorderableDragStartListener(
-                  key: ValueKey(item),
-                  index: index,
-                  child: ListTile(
-                    leading: Text('3:54'), //${item.rosterItem.tracks.first.length}
-                    title: Text(item.rosterItem.patron.name),
-                    trailing: Text('count'),
-                  ),
-                );
-              },
-            ),
+          trailing: Row(
+            mainAxisSize: .min,
+            children: [
+              IconButton.filledTonal(
+                // color: Colors.yellow,
+                onPressed: () {},
+                icon: Icon(Icons.add),
+              ),
+            ],
           ),
         ),
+        StreamBuilder(
+          stream: QueueStream.instance.playQueueStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              return _list(snapshot.data!);
+            }
+            return _list([]);
+          },
+        ),
       ],
+    );
+  }
+
+  Widget _list(List<PlayQueueInfo> items) {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (BuildContext context, int index) {
+          final item = items[index];
+          return ListTile(
+            title: Text(item.singer),
+            subtitle: Text(item.track.artist!),
+          );
+        },
+      ),
     );
   }
 }

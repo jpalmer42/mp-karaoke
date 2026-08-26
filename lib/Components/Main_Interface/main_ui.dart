@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mp_karaoke_ui/Components/Main_Interface/app_drawer.dart';
 import 'package:mp_karaoke_ui/Components/Roster/add_singer_dialog.dart';
 import 'package:mp_karaoke_ui/Components/Widgets/play_queue.dart';
@@ -46,6 +47,8 @@ class MainUIPage extends StatefulWidget with Translate {
 
 class _MainUIPageState extends State<MainUIPage> with Translate {
   final _focusNode = FocusNode();
+  final _searchFocusNode = FocusNode(); // This is passed to the SongSearchWidget
+
   late final SplitterController _scDynamicList;
   late final SplitterController _scRosterList;
 
@@ -87,59 +90,28 @@ class _MainUIPageState extends State<MainUIPage> with Translate {
           },
           body: ResizableSplitter(
             controller: _scDynamicList,
-            start: SongSearchWidget(),
+            start: SongSearchWidget(searchFocusNode: _searchFocusNode),
             end: ResizableSplitter(
               controller: _scRosterList,
               start: RosterListWidget(),
               end: PlayQueueWidget(),
             ),
           ),
-          // Container(
-          //   padding: EdgeInsets.all(10),
-          //   child: Row(
-          //     children: [
-          //       Expanded(
-          //         child: Container(
-          //           width: double.infinity,
-          //           height: double.infinity,
-          //           margin: EdgeInsets.all(4),
-          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-          //           child: Text('SongList'),
-          //         ),
-          //       ),
-          //       Expanded(
-          //         child: Container(
-          //           width: double.infinity,
-          //           height: double.infinity,
-          //           margin: EdgeInsets.all(4),
-          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-          //           child: RosterListWidget(),
-          //         ),
-          //       ),
-          //       Expanded(
-          //         child: Container(
-          //           width: double.infinity,
-          //           height: double.infinity,
-          //           margin: EdgeInsets.all(4),
-          //           decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
-          //           child: PlayQueueWidget(),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ),
       ),
     );
   }
 
   void _processKeyEvent(KeyEvent event) {
-    if (event.logicalKey.keyLabel == 'Insert' || (event.logicalKey.keyLabel == 'Numpad 0')) {
+    if (event.logicalKey == LogicalKeyboardKey.insert || (event.logicalKey == LogicalKeyboardKey.numpad0)) {
       AddSingerDialog.showTheDialog(context).then((patron) {
         if (patron != null) {
           QueueStream.instance.addSinger(patron);
         }
       });
+    } else //
+    if (event.logicalKey.keyId >= 48 && event.logicalKey.keyId <= 122) {
+      _searchFocusNode.requestFocus();
     }
   }
 }

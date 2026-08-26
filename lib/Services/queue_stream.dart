@@ -34,10 +34,10 @@ class QueueStream {
   static QueueStream get instance => _instance ??= QueueStream._();
 
   final _controllerRoster = StreamController<List<RosterItem>>();
-  final _controllerQueue = StreamController<Object>();
+  final _controllerQueue = StreamController<List<PlayQueueInfo>>();
 
   Stream<List<RosterItem>> get rosterStream => _controllerRoster.stream;
-  Stream<Object> get songQueueStream => _controllerQueue.stream;
+  Stream<List<PlayQueueInfo>> get playQueueStream => _controllerQueue.stream;
 
   final List<RosterItem> _roster = [];
 
@@ -49,7 +49,8 @@ class QueueStream {
     }
 
     _roster.add(RosterItem(patron: patron, tracks: tracks));
-    _controllerRoster.sink.add(_roster);
+    refresh();
+
     _backup();
   }
 
@@ -58,8 +59,9 @@ class QueueStream {
     if (newIndex > oldIndex) newIndex--;
     final item = _roster.removeAt(oldIndex);
     _roster.insert(newIndex, item);
-    //
-    _controllerRoster.sink.add(_roster);
+
+    refresh();
+
     _backup();
   }
 
@@ -89,6 +91,13 @@ class QueueStream {
   }
 
   void refresh() {
+    List<PlayQueueInfo> pqi = [];
+    for (final singer in _roster) {
+      if (singer.tracks.isNotEmpty) {
+        pqi.add(PlayQueueInfo(track: singer.tracks.first, singer: singer.patron.nameHomeVenue));
+      }
+    }
     _controllerRoster.sink.add(_roster);
+    _controllerQueue.sink.add(pqi);
   }
 }

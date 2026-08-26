@@ -55,17 +55,6 @@ class AppConfig {
     config._getCurrentBusiness(config);
   }
 
-  // void _getCurrentVenue(AppConfig config) async {
-  //   final int? venueId = config._preferences.getInt(spVenueId);
-  //   if (venueId != null) {
-  //     final venues = await BusinessDataAccess.instance.fetchVenuesById(id: venueId);
-
-  //     config._currentVenue = venues.isNotEmpty ? venues.first : VenueInfo(name: "Not Found $venueId");
-  //   } else {
-  //     config._currentVenue = VenueInfo(name: "Not Set");
-  //   }
-  // }
-
   void _getCurrentBusiness(AppConfig config) async {
     final int? businessId = config._preferences.getInt(spBusinessId);
     if (businessId != null) {
@@ -76,9 +65,11 @@ class AppConfig {
       config._currentBusiness = BusinessInfo(name: "Not Set");
     }
 
-    final int? venueId = config._preferences.getInt(spVenueId) ?? 1;
+    final int? venueId = config._preferences.getInt(spVenueId);
     if (venueId != null) {
       config._currentVenue = config._currentBusiness.venues!.firstWhere((venue) => venueId == venue.id, orElse: () => VenueInfo(name: "Not Set"));
+    } else {
+      config._currentVenue = VenueInfo(name: 'Not Set');
     }
   }
 }

@@ -10,10 +10,6 @@ abstract class BaseInfo {
 
     return other is BaseInfo && other.id == id;
   }
-
-  // Override hashCode to match == (only use id)
-  // @override
-  // int get hashCode => id.hashCode;
 }
 
 enum RecordStatus { unchanged, updated, deleted }
